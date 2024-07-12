@@ -1,6 +1,8 @@
 from colorama import Fore, Style
 import re
 import getpass
+import bcrypt  # For password hashing
+from db_han import connect_db, insert_user
 
 ascii_art = """
    _____                 _______             _    
@@ -38,7 +40,41 @@ while user_choice not in ("1", "2"):
 # Process user choice
 if user_choice == "1":
   print("Login initiated...")
-  exit() 
+
+  login_attempts = 0  # Initialize login attempts counter
+
+  while True:
+    username = input("Enter username: ")
+    password = getpass.getpass("Enter password: ")
+
+    # Connect to the database
+    conn, cursor = connect_db()
+
+    # Retrieve user's hashed password (assuming username is unique)
+    cursor.execute("SELECT password_hash FROM users WHERE username = ?", (username,))
+    stored_hash = cursor.fetchone()  # Assuming only one row is returned
+
+    # Check password if a hash was found
+    if stored_hash:
+      password_hash = stored_hash[0]  # Extract the hash from the retrieved row
+      if bcrypt.checkpw(password.encode(), password_hash):
+        print("Login successful!")
+        # ... redirect to logged-in user interface (optional)
+        break  # Exit the loop after successful login
+      else:
+        print("Username or password incorrect!")
+        login_attempts += 1  # Increment login attempts
+        if login_attempts >= 3:  # Limit reached
+          print("Too many failed login attempts. Please try again later.")
+          break  # Exit the loop after reaching login limit
+    else:
+      print("Username not found!")
+
+    conn.close()
+
+
+  exit()
+
   # Registration functionality
 elif user_choice == "2":
   print("Registration initiated...")
@@ -76,6 +112,8 @@ elif user_choice == "2":
 
     # All requirements met, break out of the loop
     break
+  # Hash the password before storing it
+  password_hash = bcrypt.hashpw(password.encode(), bcrypt.gensalt())  
 
   while True:
     email = input("Enter email address: ")
@@ -127,8 +165,19 @@ elif user_choice == "2":
 
   print("\n Processing registration...")
 
+  # Connect to the database
+  conn, cursor = connect_db()
+  # Insert user data into the database
+  insert_user(cursor, username, email, password_hash, farm_name, region, ta, farm_size)
+
+  # Commit changes and close connection (handled within connect_db function)
+  conn.commit()
+  conn.close()
+
+  print("Registration successful!")
+
   exit() 
-  # Add your registration functionality here
+  
 else:
   print("Unexpected error occurred.")  # Handle unexpected input
   exit() 

@@ -1,10 +1,22 @@
 from flask import Flask, render_template, request
 from werkzeug.security import generate_password_hash # for password hashing
 import re
+from supdb import db
+from models import User
 
 app = Flask(__name__)
 
-users = []
+# Database configuration
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///Users.db'  
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False  
+
+# Initialising SQLAlchemy with Flask App
+db.init_app(app)
+
+""" Creating Database with App Context"""
+def create_db():
+    with app.app_context():
+        db.create_all()
 
 @app.route("/signup", methods=["GET", "POST"])
 def signup():
@@ -66,19 +78,15 @@ def signup():
         else:
             # All validation passed, proceed with user registration
             hashed_password = generate_password_hash(password)
-            # ... user storage logic (replace with database interaction)
-            users.append({
-                "username": username,
-                "password_hash": hashed_password,
-                "email": email,
-                "farm_name": farm_name,
-                "region": region,
-                "traditional_authority": traditional_authority,
-                "farm_size": farm_size,
-            })
+            user = User(username=username, password_hash=hashed_password, email=email,
+                    farm_name=farm_name, region=region, traditional_authority=traditional_authority,
+                    farm_size=farm_size)
+            db.session.add(user)  # Add user to the database session
+            db.session.commit()  # Commit the changes to the database
             return "User Registered!"  # Placeholder for success message (replace later)
 
 
 # Run the development server (add this outside any functions)
 if __name__ == "__main__":
   app.run(debug=True)  # Run the development server in debug mode
+  create_db()

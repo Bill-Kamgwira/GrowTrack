@@ -12,6 +12,8 @@ class User(db.Model, UserMixin):
     region = db.Column(db.String(255), nullable=False)
     traditional_authority = db.Column(db.String(255), nullable=False)
     farm_size = db.Column(db.Float, nullable=False)
+    first_name = db.Column(db.String(120), nullable=True)
+    last_name = db.Column(db.String(120), nullable=True)
     
     def get_id(self):
         return self.id

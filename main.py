@@ -6,6 +6,7 @@ from supdb import db
 from models import User
 import secrets
 
+
 app = Flask(__name__)
 
 # Database configuration
@@ -17,11 +18,14 @@ app.config['SQLALCHEMY_USE_GET_IDENTITY'] = True
 
 db.init_app(app)  
 
+
 # Creating Database with App Context
 def create_db():
     with app.app_context():
         db.create_all()
 
+
+#Login Manager Configuration
 login_manager = LoginManager()
 login_manager.init_app(app)
 login_manager.login_view = 'login'  # Directs users to the Login function.
@@ -47,6 +51,7 @@ def signup():
         region = request.form["region"]
         traditional_authority = request.form["traditional_authority"]
         farm_size = request.form["farm_size"]
+        confirm_password = request.form['confirm_password']
 
         errors = []  # List to store any validation errors
 
@@ -66,6 +71,10 @@ def signup():
             complexity_requirements_met = has_uppercase and has_lowercase and (has_digit or has_symbol)
             if not complexity_requirements_met:
                 errors.append("Password must contain at least one uppercase letter, one lowercase letter, one number, and one symbol.")
+        
+        #Confirm Password Validation
+        if password != confirm_password:
+            errors.append("Passwords do not match.")
 
         # Email validation using regular expressions
         email_regex = r"^\w+@\w+\.\w+$"
@@ -102,12 +111,13 @@ def signup():
             db.session.commit()  # Commit the changes to the database
             return "User Registered!"  # Placeholder for success message (replace later)
 
+
 @app.route('/view_users') #To view Contents of the Database
 def view_users():
     users = User.query.all()  # Query all users
     return render_template('users.html', users=users)
 
-#
+
 @login_manager.user_loader
 def load_user(user_id):
     return User.query.get(int(user_id))
@@ -125,7 +135,10 @@ def login():
             login_user(user)
             return redirect(url_for('dashboard'))
         else:
-            flash('Login Failed! Invalid username or password.', 'error')
+            if not user:
+                flash('Login Failed! Invalid email or password.', 'error')
+            else:
+                flash('Login Failed! Incorrect password.', 'error')
     return render_template('login.html')
 
 #Logout Route
@@ -135,13 +148,42 @@ def logout():
     logout_user()
     return redirect(url_for('login'))
 
+# Dashboard Route
 @app.route('/dashboard')
 @login_required
 def dashboard():
     return render_template('dashboard.html')
 
+# Route for User to view profile
+@app.route('/profile')
+@login_required
+def profile():
+    return render_template('profile.html', user=current_user)
+
+# Route for Editing User profiles
+@app.route('/edit-profile', methods=['GET', 'POST'])
+@login_required
+def edit_profile():
+    if request.method == 'POST':
+        current_user.first_name = request.form['first_name']
+        current_user.last_name = request.form['last_name']
+        # Add more fields to update as needed
+        db.session.commit()
+        flash('Profile updated successfully.', 'success')
+        return redirect(url_for('profile'))
+    return render_template('edit-profile.html', user=current_user)
+
+
+def drop_users_table():
+    from sqlalchemy import MetaData, Table
+
+    metadata = MetaData()
+    users_table = Table('users', metadata, autoload_with=db.engine)
+    metadata.drop_all(db.engine)
+
 # Run the development server (add this outside any functions)
 if __name__ == "__main__":
   create_db()
+  drop_users_table()
   app.run(debug=True)  # Run the development server in debug mode
   

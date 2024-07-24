@@ -15,14 +15,14 @@
         <button type="submit">Login</button>
     </form>
     {% with messages = get_flashed_messages() %}
-  {% if messages %}
+    {% if messages %}
     <ul class="flashes">
       {% for message in messages %}
         <li class="error">{{ message }}</li>
       {% endfor %}
     </ul>
-  {% endif %}
-{% endwith %}
-
+    {% endif %}
+    {% endwith %}
+<p>Don't have an account? <a href="/signup">Sign Up</a></p>
 </body>
 </html>

@@ -1,7 +1,8 @@
 # SQLAlchemy Instance Is Imported
 from supdb import db
+from flask_login import UserMixin
 
-class User(db.Model):
+class User(db.Model, UserMixin):
     __tablename__ = "Users"
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(80), unique=True, nullable=False)
@@ -11,3 +12,17 @@ class User(db.Model):
     region = db.Column(db.String(255), nullable=False)
     traditional_authority = db.Column(db.String(255), nullable=False)
     farm_size = db.Column(db.Float, nullable=False)
+    
+    def get_id(self):
+        return self.id
+
+    def is_active(self):
+        return True
+
+    def is_anonymous(self):
+        return False
+
+    def is_authenticated(self):
+        return True
+
+

@@ -1,8 +1,10 @@
-from flask import Flask, render_template, request
-from werkzeug.security import generate_password_hash # for password hashing
+from flask import Flask, render_template, request, redirect, url_for, flash
+from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
+from werkzeug.security import generate_password_hash, check_password_hash
 import re
 from supdb import db
 from models import User
+import secrets
 
 app = Flask(__name__)
 
@@ -10,14 +12,29 @@ app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///Users.db'  
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False  
 
-# Initialising SQLAlchemy with Flask App
-db.init_app(app)
+# Configure Flask-SQLAlchemy to use Session.get()
+app.config['SQLALCHEMY_USE_GET_IDENTITY'] = True
 
-""" Creating Database with App Context"""
+db.init_app(app)  
+
+# Creating Database with App Context
 def create_db():
     with app.app_context():
         db.create_all()
 
+login_manager = LoginManager()
+login_manager.init_app(app)
+login_manager.login_view = 'login'  # Directs users to the Login function.
+
+# Generate a strong random secret key
+app.config['SECRET_KEY'] = secrets.token_hex(32)
+
+#Route for Landing page
+@app.route('/')
+def home():
+    return render_template('landing.html')
+
+# Route and logic for Signup functionality
 @app.route("/signup", methods=["GET", "POST"])
 def signup():
     if request.method == "GET":
@@ -85,8 +102,46 @@ def signup():
             db.session.commit()  # Commit the changes to the database
             return "User Registered!"  # Placeholder for success message (replace later)
 
+@app.route('/view_users') #To view Contents of the Database
+def view_users():
+    users = User.query.all()  # Query all users
+    return render_template('users.html', users=users)
+
+#
+@login_manager.user_loader
+def load_user(user_id):
+    return User.query.get(int(user_id))
+
+#Login Route
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    if current_user.is_authenticated:
+        return redirect(url_for('dashboard'))
+    if request.method == 'POST':
+        email = request.form['email']
+        password = request.form['password']
+        user = User.query.filter_by(email=email).first()
+        if user and check_password_hash(user.password_hash, password):
+            login_user(user)
+            return redirect(url_for('dashboard'))
+        else:
+            flash('Login Failed! Invalid username or password.', 'error')
+    return render_template('login.html')
+
+#Logout Route
+@app.route('/logout')
+@login_required
+def logout():
+    logout_user()
+    return redirect(url_for('login'))
+
+@app.route('/dashboard')
+@login_required
+def dashboard():
+    return render_template('dashboard.html')
 
 # Run the development server (add this outside any functions)
 if __name__ == "__main__":
-  app.run(debug=True)  # Run the development server in debug mode
   create_db()
+  app.run(debug=True)  # Run the development server in debug mode
+  

@@ -6,7 +6,6 @@ from supdb import db
 from models import User
 import secrets
 
-
 app = Flask(__name__)
 
 # Database configuration
@@ -109,7 +108,7 @@ def signup():
                     farm_size=farm_size)
             db.session.add(user)  # Add user to the database session
             db.session.commit()  # Commit the changes to the database
-            return "User Registered!"  # Placeholder for success message (replace later)
+            return redirect(url_for('login'))
 
 
 @app.route('/view_users') #To view Contents of the Database
@@ -174,16 +173,8 @@ def edit_profile():
     return render_template('edit-profile.html', user=current_user)
 
 
-def drop_users_table():
-    from sqlalchemy import MetaData, Table
-
-    metadata = MetaData()
-    users_table = Table('users', metadata, autoload_with=db.engine)
-    metadata.drop_all(db.engine)
-
 # Run the development server (add this outside any functions)
 if __name__ == "__main__":
   create_db()
-  drop_users_table()
   app.run(debug=True)  # Run the development server in debug mode
   

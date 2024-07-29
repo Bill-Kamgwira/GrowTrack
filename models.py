@@ -27,4 +27,43 @@ class User(db.Model, UserMixin):
     def is_authenticated(self):
         return True
 
+class Crop(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(100), nullable=False)
+    planting_date = db.Column(db.Date)
+    expected_harvest_date = db.Column(db.Date)
+    crop_variety = db.Column(db.String(100))
+    acreage = db.Column(db.Float)
+    crop_rotation_history = db.Column(db.Text)  # Store as text for flexibility
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'))
+    user = db.relationship('User', back_populates='crops')
+    crop_management_records = db.relationship('CropManagement', backref='crop')
+    yield_data = db.relationship('YieldData', backref='crop')
+    financial_data = db.relationship('FinancialData', backref='crop', uselist=False)  # One-to-one relationship
+
+class CropManagement(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    crop_id = db.Column(db.Integer, db.ForeignKey('crop.id'))
+    type = db.Column(db.String(50))  # e.g., fertilization, irrigation, pest control
+    date = db.Column(db.Date)
+    details = db.Column(db.Text)  # Store specific details
+
+class YieldData(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    crop_id = db.Column(db.Integer, db.ForeignKey('crop.id'))
+    quantity = db.Column(db.Float)
+    quality = db.Column(db.String(50))
+    harvest_date = db.Column(db.Date)
+    post_harvest_loss = db.Column(db.Float)
+    factors_affecting_yield = db.Column(db.Text)
+
+class FinancialData(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    crop_id = db.Column(db.Integer, db.ForeignKey('crop.id'), unique=True)  # One-to-one relationship
+    seed_cost = db.Column(db.Float)
+    fertilizer_cost = db.Column(db.Float)
+    labor_cost = db.Column(db.Float)
+    equipment_cost = db.Column(db.Float)
+    pesticide_cost = db.Column(db.Float)
+    revenue = db.Column(db.Float)
 

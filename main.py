@@ -3,8 +3,9 @@ from flask_login import LoginManager, UserMixin, login_user, login_required, log
 from werkzeug.security import generate_password_hash, check_password_hash
 import re
 from supdb import db
-from models import User
+from models import User, Crop
 import secrets
+from datetime import datetime
 
 app = Flask(__name__)
 
@@ -171,6 +172,41 @@ def edit_profile():
         flash('Profile updated successfully.', 'success')
         return redirect(url_for('profile'))
     return render_template('edit-profile.html', user=current_user)
+
+# Route to Crop data capture form
+@app.route('/add_crop', methods=['GET', 'POST'])
+@login_required
+def add_crop():
+    if request.method == 'POST':
+        crop = Crop(
+            name=request.form['name'],
+            planting_date = datetime.strptime(request.form['planting_date'], '%Y-%m-%d').date(),
+            expected_harvest_date = datetime.strptime(request.form['expected_harvest_date'], '%Y-%m-%d').date(),
+            crop_variety=request.form['crop_variety'],
+            acreage=request.form['acreage'],
+            crop_rotation_history=request.form['crop_rotation'],
+            user=current_user
+        )
+        db.session.add(crop)
+        db.session.commit()
+        flash('Crop added successfully!', 'success')
+        return redirect(url_for('view_crops'))
+    return render_template('add_crop.html')
+
+# Route to View Crops added
+@app.route('/view_crops')
+@login_required
+def view_crops():
+    crops = current_user.crops
+    return render_template('view_crops.html', crops=crops)
+
+# Route for link to view details of crops
+@app.route('/crop/<int:crop_id>')
+@login_required
+def view_crop(crop_id):
+    crop = Crop.query.get_or_404(crop_id)
+    # Access related data (crop management, yield data, financial data)
+    return render_template('info.html', crop=crop)
 
 
 # Run the development server (add this outside any functions)

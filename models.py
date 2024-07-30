@@ -14,6 +14,7 @@ class User(db.Model, UserMixin):
     farm_size = db.Column(db.Float, nullable=False)
     first_name = db.Column(db.String(120), nullable=True)
     last_name = db.Column(db.String(120), nullable=True)
+    crops = db.relationship('Crop', back_populates='user')
     
     def get_id(self):
         return self.id
@@ -35,7 +36,7 @@ class Crop(db.Model):
     crop_variety = db.Column(db.String(100))
     acreage = db.Column(db.Float)
     crop_rotation_history = db.Column(db.Text)  # Store as text for flexibility
-    user_id = db.Column(db.Integer, db.ForeignKey('users.id'))
+    user_id = db.Column(db.Integer, db.ForeignKey('users1.id'))
     user = db.relationship('User', back_populates='crops')
     crop_management_records = db.relationship('CropManagement', backref='crop')
     yield_data = db.relationship('YieldData', backref='crop')

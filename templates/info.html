@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Crop Details</title>
+    <script src="/static/tabs.js"></script>  </head>
+</head>
+<body>
+    <h1>Crop Details</h1>
+    <ul class="tabs">
+        <li><a href="#crop-details">Crop Details</a></li>
+        <li><a href="#crop-management">Crop Management</a></li>
+        <li><a href="#yield-data">Yield Data</a></li>
+        <li><a href="#financial-data">Financial Data</a></li>
+    </ul>
+    <div class="tab-content">
+        <div id="crop-details" class="tab-pane">
+            <p>Crop Name: {{ crop.name }}</p>
+            <p>Planting Date: {{ crop.planting_date }}</p>
+            <p>Expected Harvest Date: {{ crop.expected_harvest_date }}</p>
+            <p>Acreage: {{ crop.acreage }}</p>
+            <p>Crop Rotation History: {{ crop.crop_rotation_history }}</p>
+        </div>
+
+        <div id="crop-management" class="tab-pane">
+        </div>
+        <div id="yield-data" class="tab-pane">
+        </div>
+        <div id="financial-data" class="tab-pane">
+        </div>
+
+    </div>
+</body>
+</html>

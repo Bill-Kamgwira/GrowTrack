@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>View Crops</title>
+</head>
+<body>
+    <h1>Your Crops</h1>
+    <ul>
+        {% for crop in crops %}
+        <li><a href="/crop/{{ crop.id }}">{{ crop.name }}</a></li>
+        {% endfor %}
+    </ul>
+</body>
+</html>

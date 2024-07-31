@@ -3,7 +3,7 @@ from flask_login import LoginManager, UserMixin, login_user, login_required, log
 from werkzeug.security import generate_password_hash, check_password_hash
 import re
 from supdb import db
-from models import User, Crop
+from models import User, Crop, CropManagement
 import secrets
 from datetime import datetime
 
@@ -207,6 +207,58 @@ def view_crop(crop_id):
     crop = Crop.query.get_or_404(crop_id)
     # Access related data (crop management, yield data, financial data)
     return render_template('info.html', crop=crop)
+
+#Route for capturing more information on the crop
+@app.route('/crop/<int:crop_id>/add-management', methods=['GET', 'POST'])
+@login_required
+def add_crop_management(crop_id):
+    crop = Crop.query.get_or_404(crop_id)
+    if request.method == 'POST':
+        management_type = request.form['management_type']
+        management_data = {}
+
+        if management_type == 'fertilization':
+            management_data = {
+            'fertilizer_type' : request.form['fertilizer_type'],
+            'fertilizer_amount' : request.form['fertilizer_amount'],
+            'fertilizer_date' : request.form['fertilizer_date']
+            }
+        elif management_type == 'irrigation':
+            management_data = {
+            'irrigation_type' : request.form['irrigation_type'],
+            'irrigation_amount' : request.form['irrigation_amount'],
+            'irrigation_date' : request.form['irrigation_date']
+            }
+        elif management_type == 'pest_control':
+            management_data = {
+            'control_type' : request.form['control_type'],
+            'control_amount' : request.form['control_amount'],
+            'control_date' : request.form['control_date']
+            }
+        elif management_type == 'weeding':
+            management_data = {
+            'weeding_method' : request.form['weeding_method'],
+            'weeding_date' : request.form['weeding_date']
+            }
+        elif management_type == 'labor':
+            management_data = {
+            'tasks_completed' : request.form['tasks_completed'],
+            'hours_accrued' : request.form['hours_accrued'],
+            'labour_date' : request.form['labour_date']
+            }
+
+        management_record = CropManagement(
+            crop=crop,
+            type=management_type,
+            **management_data
+        )
+        db.session.add(management_record)
+        db.session.commit()
+        flash('Crop management record added successfully!', 'success')
+        return redirect(url_for('view_crop', crop_id=crop_id))
+
+    return render_template('add_crop_management.html', crop=crop)
+
 
 
 # Run the development server (add this outside any functions)

@@ -38,16 +38,35 @@ class Crop(db.Model):
     crop_rotation_history = db.Column(db.Text)  # Store as text for flexibility
     user_id = db.Column(db.Integer, db.ForeignKey('users1.id'))
     user = db.relationship('User', back_populates='crops')
-    crop_management_records = db.relationship('CropManagement', backref='crop')
+    crop_management_records = db.relationship('CropManagement', back_populates='crop')
     yield_data = db.relationship('YieldData', backref='crop')
     financial_data = db.relationship('FinancialData', backref='crop', uselist=False)  # One-to-one relationship
 
 class CropManagement(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     crop_id = db.Column(db.Integer, db.ForeignKey('crop.id'))
-    type = db.Column(db.String(50))  # e.g., fertilization, irrigation, pest control
-    date = db.Column(db.Date)
-    details = db.Column(db.Text)  # Store specific details
+     # Specific fields for different management types
+     #Specific data for fertilization
+    fertilizer_type = db.Column(db.String(50))
+    fertilizer_amount = db.Column(db.Float)
+    fertilizer_date = db.Column(db.Date)
+    #Specific data for irrigation
+    irrigation_type = db.Column(db.String(50))
+    irrigation_amount = db.Column(db.Float)
+    irrigation_amount = db.Column(db.Date)
+    # Specifc data for Pest & Disease Control
+    control_type = db.Column(db.String(50))
+    control_amount = db.Column(db.Float)
+    control_date = db.Column(db.Date)
+    # Specific data for Weeding practices
+    weeding_method = db.Column(db.String(50))
+    weeding_date = db.Column(db.Date)
+    # Specific data for Labour inputs
+    tasks_completed = db.Column(db.String(200))
+    hours_accrued = db.Column(db.Float)
+    labour_date = db.Column(db.Date)
+    
+    crop = db.relationship('Crop')
 
 class YieldData(db.Model):
     id = db.Column(db.Integer, primary_key=True)

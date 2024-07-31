@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Add Crop Management</title>
+</head>
+<body>
+    <div id="crop-management" class="tab-pane">
+        <h2>Crop Management</h2>
+        <form method="POST">
+            <label for="management_type">Management Type:</label>
+            <select name="management_type" id="management_type">
+                <option value="fertilization">Fertilization</option>
+                <option value="irrigation">Irrigation</option>
+                <option value="pest_control">Pest Control</option>
+                <option value="weeding">Weeding</option>
+                <option value="labor">Labor</option>
+            </select>
+    
+            <div id="management-details"></div>
+    
+            <button type="submit">Add Management</button>
+        </form>
+    </div>
+</body>
+</html>

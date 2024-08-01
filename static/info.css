@@ -1,0 +1,7 @@
+.tab-pane {
+  display: none; /* Initially hide all tab contents */
+}
+
+.tab-pane.active {
+  display: block; /* Show the active tab content */
+}

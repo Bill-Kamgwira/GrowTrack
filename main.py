@@ -7,7 +7,7 @@ from models import User, Crop, CropManagement
 import secrets
 from datetime import datetime
 
-app = Flask(__name__)
+app = Flask(__name__, static_url_path='/static')
 
 # Database configuration
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///Users.db'  
@@ -214,37 +214,37 @@ def view_crop(crop_id):
 def add_crop_management(crop_id):
     crop = Crop.query.get_or_404(crop_id)
     if request.method == 'POST':
-        management_type = request.form['management_type']
+        management_type = request.form.get('management_type')
         management_data = {}
 
         if management_type == 'fertilization':
             management_data = {
-            'fertilizer_type' : request.form['fertilizer_type'],
-            'fertilizer_amount' : request.form['fertilizer_amount'],
-            'fertilizer_date' : request.form['fertilizer_date']
+            'fertilizer_type' : request.form.get('fertilizer_type'),
+            'fertilizer_amount' : request.form.get('fertilizer_amount'),
+            'fertilizer_date' : request.form.get('fertilizer_date')
             }
         elif management_type == 'irrigation':
             management_data = {
-            'irrigation_type' : request.form['irrigation_type'],
-            'irrigation_amount' : request.form['irrigation_amount'],
-            'irrigation_date' : request.form['irrigation_date']
+            'irrigation_type' : request.form.get('irrigation_type'),
+            'irrigation_amount' : request.form.get('irrigation_amount'),
+            'irrigation_date' : request.form.get('irrigation_date')
             }
         elif management_type == 'pest_control':
             management_data = {
-            'control_type' : request.form['control_type'],
-            'control_amount' : request.form['control_amount'],
-            'control_date' : request.form['control_date']
+            'control_type' : request.form.get('control_type'),
+            'control_amount' : request.form.get('control_amount'),
+            'control_date' : request.form.get('control_date')
             }
         elif management_type == 'weeding':
             management_data = {
-            'weeding_method' : request.form['weeding_method'],
-            'weeding_date' : request.form['weeding_date']
+            'weeding_method' : request.form.get('weeding_method'),
+            'weeding_date' : request.form.get('weeding_date')
             }
         elif management_type == 'labor':
             management_data = {
-            'tasks_completed' : request.form['tasks_completed'],
-            'hours_accrued' : request.form['hours_accrued'],
-            'labour_date' : request.form['labour_date']
+            'tasks_completed' : request.form.get('tasks_completed'),
+            'hours_accrued' : request.form.get('hours_accrued'),
+            'labour_date' : request.form.get('labour_date')
             }
 
         management_record = CropManagement(

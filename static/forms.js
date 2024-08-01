@@ -1,9 +1,19 @@
-const managementTypeSelect = document.getElementById('management_type');
-const managementDetailsContainer = document.getElementById('management-details');
+alert("Javascript Loaded!");
 
-managementTypeSelect.addEventListener('change', () => {
-    const selectedType = managementTypeSelect.value;
-    managementDetailsContainer.innerHTML = ''; // Clear previous content
+
+
+document.addEventListener('DOMContentLoaded', () => {
+    const managementTypeSelect = document.getElementById('management_type');
+    const managementDetailsContainer = document.getElementById('management-details');
+                                                                
+    console.log('DOMContentLoaded: Elements accessed:', managementTypeSelect, managementDetailsContainer);
+
+    managementTypeSelect.addEventListener('change', () => {
+        console.log('Select box changed');
+        const selectedType = managementTypeSelect.value;
+        console.log('Selected type:', selectedType);
+
+        managementDetailsContainer.innerHTML = ''; // Clear previous content 
 
     // Dynamically create form fields based on selected type
     if (selectedType === 'fertilization') {
@@ -16,7 +26,7 @@ managementTypeSelect.addEventListener('change', () => {
         fertilizerTypeInput.id = 'fertilizer_type';
 
         const fertilizerAmountLabel = document.createElement('label');
-        fertilizerAmountLabel.textContent = 'Amount appied:';
+        fertilizerAmountLabel.textContent = 'Amount applied:';
 
         const fertilizerAmountInput = document.createElement('input');
         fertilizerAmountInput.type = 'number';
@@ -51,7 +61,7 @@ managementTypeSelect.addEventListener('change', () => {
         irrigationTypeInput.id = 'irrigation_type';
 
         const irrigationAmountLabel = document.createElement('label');
-        irrigationAmountLabel.textContent = 'Amount appied:';
+        irrigationAmountLabel.textContent = 'Amount applied:';
 
         const irrigationAmountInput = document.createElement('input');
         irrigationAmountInput.type = 'number';
@@ -86,7 +96,7 @@ managementTypeSelect.addEventListener('change', () => {
         controlTypeInput.id = 'control_type';
 
         const controlAmountLabel = document.createElement('label');
-        controlAmountLabel.textContent = 'Amount appied:';
+        controlAmountLabel.textContent = 'Amount applied:';
 
         const controlAmountInput = document.createElement('input');
         controlAmountInput.type = 'number';
@@ -169,4 +179,4 @@ managementTypeSelect.addEventListener('change', () => {
         managementDetailsContainer.appendChild(taskDateInput);
 
     }
-});
+});})

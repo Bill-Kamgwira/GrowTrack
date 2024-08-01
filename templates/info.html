@@ -1,11 +1,13 @@
 <!DOCTYPE html>
 <html>
 <head>
+    <link rel="stylesheet" href="/static/info.css">
     <title>Crop Details</title>
-    <script src="/static/tabs.js"></script>  </head>
+    
 </head>
 <body>
     <h1>Crop Details</h1>
+    <h3><a href="/dashboard">Back to Dashboard</a></h3>
     <ul class="tabs">
         <li><a href="#crop-details">Crop Details</a></li>
         <li><a href="#crop-management">Crop Management</a></li>
@@ -14,6 +16,7 @@
     </ul>
     <div class="tab-content">
         <div id="crop-details" class="tab-pane">
+            <script src="/static/tabs.js"></script>
             <p>Crop Name: {{ crop.name }}</p>
             <p>Planting Date: {{ crop.planting_date }}</p>
             <p>Expected Harvest Date: {{ crop.expected_harvest_date }}</p>
@@ -22,6 +25,7 @@
         </div>
 
         <div id="crop-management" class="tab-pane">
+            
             <a href="/crop/{{ crop.id }}/add-management">Add Crop Management Data</a>  </div>
         </div>
         <div id="yield-data" class="tab-pane">

@@ -2,10 +2,12 @@
 <html>
 <head>
     <title>Add Crop Management</title>
+    <script src="/static/forms.js"></script>
 </head>
 <body>
     <div id="crop-management" class="tab-pane">
         <h2>Crop Management</h2>
+        <h3><a href="/dashboard">Back to Dashboard</a></h3>
         <form method="POST">
             <label for="management_type">Management Type:</label>
             <select name="management_type" id="management_type">
@@ -16,10 +18,17 @@
                 <option value="labor">Labor</option>
             </select>
     
+            
             <div id="management-details"></div>
-    
-            <button type="submit">Add Management</button>
+
+             <button type="submit">Add Management</button>
+
+            
         </form>
+
+        
+        
     </div>
+    
 </body>
 </html>

@@ -5,6 +5,7 @@
 </head>
 <body>
     <h1>Your Crops</h1>
+    <h3><a href="/dashboard">Back to Dashboard</a></h3>
     <ul>
         {% for crop in crops %}
         <li><a href="/crop/{{ crop.id }}">{{ crop.name }}</a></li>

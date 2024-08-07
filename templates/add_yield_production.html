@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Add Crop Yield & Production details</title>
+    
+</head>
+<body>
+    <h2>Crop Yield & Production</h2>
+    <h3><a href="/dashboard">Back to Dashboard</a></h3>
+    <form method="POST">
+        <label for="yield-quantity">Yield-Quantity:</label>
+        <input type="number" name="yield-quantity" id="yield-quantity" required>
+        <br>
+
+        <label for="yield-quality">Yield-Quality:</label>
+        <input type="text" name="yield-quality" id="yield-quality">
+        <br>
+
+        <label for="harvest_date">Harvest Date:</label>
+        <input type="date" name="harvest_date" id="harvest_date">
+        <br>
+
+        <label for="post_harvest_losses">Post-Harvest Losses:</label>
+        <input type="number" name="post_harvest_losses" id="post_harvest_losses">
+        <br>
+
+
+        <label for="factors">Factors affecting Yield:</label>
+        <input type="text" name="factors" id="factors">
+
+        <button type="submit">Add Yield Data</button>
+    </form>
+    
+</body>
+</html>

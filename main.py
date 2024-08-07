@@ -3,9 +3,10 @@ from flask_login import LoginManager, UserMixin, login_user, login_required, log
 from werkzeug.security import generate_password_hash, check_password_hash
 import re
 from supdb import db
-from models import User, Crop, CropManagement
+from models import User, Crop, CropManagement, YieldData, FinancialData
 import secrets
 from datetime import datetime
+from flask_migrate import Migrate
 
 app = Flask(__name__, static_url_path='/static')
 
@@ -18,6 +19,7 @@ app.config['SQLALCHEMY_USE_GET_IDENTITY'] = True
 
 db.init_app(app)  
 
+migrate = Migrate(app, db)
 
 # Creating Database with App Context
 def create_db():
@@ -205,10 +207,12 @@ def view_crops():
 @login_required
 def view_crop(crop_id):
     crop = Crop.query.get_or_404(crop_id)
-    # Access related data (crop management, yield data, financial data)
-    return render_template('info.html', crop=crop)
+    crop_management_records = CropManagement.query.filter_by(crop_id=crop_id).all()
+    yield_production_records = YieldData.query.filter_by(crop_id=crop_id).all()
+    financial_data_records = FinancialData.query.filter_by(crop_id=crop_id).all()
+    return render_template('info.html', crop=crop, crop_management_records=crop_management_records, yield_production_records=yield_production_records, financial_data_records = financial_data_records)
 
-#Route for capturing more information on the crop
+#Route for capturing Crop-management data on the crop
 @app.route('/crop/<int:crop_id>/add-management', methods=['GET', 'POST'])
 @login_required
 def add_crop_management(crop_id):
@@ -221,35 +225,34 @@ def add_crop_management(crop_id):
             management_data = {
             'fertilizer_type' : request.form.get('fertilizer_type'),
             'fertilizer_amount' : request.form.get('fertilizer_amount'),
-            'fertilizer_date' : request.form.get('fertilizer_date')
+            'fertilizer_date' : datetime.strptime(request.form.get('fertilizer_date'), '%Y-%m-%d').date(),
             }
         elif management_type == 'irrigation':
             management_data = {
             'irrigation_type' : request.form.get('irrigation_type'),
             'irrigation_amount' : request.form.get('irrigation_amount'),
-            'irrigation_date' : request.form.get('irrigation_date')
+            'irrigation_date' : datetime.strptime(request.form.get('irrigation_date'), '%Y-%m-%d').date(),
             }
         elif management_type == 'pest_control':
             management_data = {
             'control_type' : request.form.get('control_type'),
             'control_amount' : request.form.get('control_amount'),
-            'control_date' : request.form.get('control_date')
+            'control_date' : datetime.strptime(request.form.get('control_date'), '%Y-%m-%d').date(),
             }
         elif management_type == 'weeding':
             management_data = {
             'weeding_method' : request.form.get('weeding_method'),
-            'weeding_date' : request.form.get('weeding_date')
+            'weeding_date' : datetime.strptime(request.form.get('weeding_date'), '%Y-%m-%d').date(),
             }
         elif management_type == 'labor':
             management_data = {
             'tasks_completed' : request.form.get('tasks_completed'),
             'hours_accrued' : request.form.get('hours_accrued'),
-            'labour_date' : request.form.get('labour_date')
+            'labour_date' : datetime.strptime(request.form.get('labour_date'), '%Y-%m-%d').date(),
             }
 
         management_record = CropManagement(
             crop=crop,
-            type=management_type,
             **management_data
         )
         db.session.add(management_record)
@@ -259,7 +262,50 @@ def add_crop_management(crop_id):
 
     return render_template('add_crop_management.html', crop=crop)
 
+#Route for capturing yield & production on the crop
+@app.route('/crop/<int:crop_id>/add-yield_production', methods=['GET', 'POST'])
+@login_required
+def add_YieldData(crop_id):
+    crop = Crop.query.get_or_404(crop_id)
+    if request.method == 'POST':
+        
+        yield_production = YieldData(
+            quantity=request.form['yield-quantity'],
+            quality=request.form['yield-quality'],
+            harvest_date = datetime.strptime(request.form['harvest_date'], '%Y-%m-%d').date(),
+            post_harvest_loss=request.form['post_harvest_losses'],
+            factors_affecting_yield=request.form['factors'],
+            crop = crop
+        )
+        db.session.add(yield_production)
+        db.session.commit()
+        flash('Yield data added successfully!', 'success')
+        return redirect(url_for('view_crop', crop_id=crop_id)) 
 
+    return render_template('add_yield_production.html', crop = crop)
+
+#Route for capturing yield & production on the crop
+@app.route('/crop/<int:crop_id>/add-financial', methods=['GET', 'POST'])
+@login_required
+def add_FinanceData(crop_id):
+    crop = Crop.query.get_or_404(crop_id)
+    if request.method == 'POST':
+        
+        financial_data = FinancialData(
+            seed_cost=request.form['seed-cost'],
+            fertilizer_cost=request.form['fertilizer_cost'],
+            labor_cost=request.form['labor_cost'],
+            equipment_cost=request.form['equipment_cost'],
+            pesticide_cost=request.form['pesticide_cost'],
+            revenue=request.form['revenue'],
+            crop = crop
+        )
+        db.session.add(financial_data)
+        db.session.commit()
+        flash('Financial data added successfully!', 'success')
+        return redirect(url_for('view_crop', crop_id=crop_id)) 
+
+    return render_template('add_financial.html', crop = crop)
 
 # Run the development server (add this outside any functions)
 if __name__ == "__main__":

@@ -25,12 +25,94 @@
         </div>
 
         <div id="crop-management" class="tab-pane">
-            
-            <a href="/crop/{{ crop.id }}/add-management">Add Crop Management Data</a>  </div>
-        </div>
-        <div id="yield-data" class="tab-pane">
-        </div>
+            <h2>Crop Management Records</h2>
+            {% if crop_management_records %}
+              <table>
+                <thead>
+                  <tr>
+                    <th>Management Type</th>
+                    <th>Details</th>
+                    <th>Date</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {% for management_record in crop_management_records %}
+                    <tr>
+                      <td>{{ management_record.fertilizer_type or management_record.irrigation_type or management_record.control_type or management_record.weeding_method or management_record.tasks_completed }}</td>
+                      <td>{{ management_record.fertilizer_amount or management_record.irrigation_amount or management_record.control_amount or management_record.hours_accrued }}</td>
+                      <td>{{ management_record.fertilizer_date or management_record.irrigation_date or management_record.control_date or management_record.weeding_date or management_record.labour_date }}</td>
+                    </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            {% else %}
+              <p>No crop management data found.</p>
+            {% endif %}
+            <a href="/crop/{{ crop.id }}/add-management">Add Crop Management Data</a>
+          </div>
+          
+          
+          <div id="yield-data" class="tab-pane">
+            <h2>Yield & Production Records</h2>
+            {% if yield_production_records %}
+              <table>
+                <thead>
+                  <tr>
+                    <th>Yield-Quantity</th>
+                    <th>Yield-Quality</th>
+                    <th>Harvest Date</th>
+                    <th>Post-Harvest Losses</th>
+                    <th>Factors affecting Yield</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {% for yield_record in yield_production_records %}
+                    <tr>
+                      <td>{{ yield_record.quantity }}</td>  <td>{{ yield_record.quality }}</td>
+                      <td>{{ yield_record.harvest_date }}</td>
+                      <td>{{ yield_record.post_harvest_loss }}</td>
+                      <td>{{ yield_record.factors_affecting_yield }}</td>
+                    </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            {% else %}
+              <p>No Yield & Production data found.</p>
+            {% endif %}
+            <a href="/crop/{{ crop.id }}/add-yield_production">Add Yield & Production Data</a>
+          </div>
+          
         <div id="financial-data" class="tab-pane">
+          <h2>Finance Records</h2>
+            {% if financial_data_records %}
+              <table>
+                <thead>
+                  <tr>
+                    <th>Seed Cost</th>
+                    <th>Fertilizer Cost</th>
+                    <th>Labor Cost</th>
+                    <th>Equipment Cost</th>
+                    <th>Pesticide Cost</th>
+                    <th>Revenue</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {% for finance_record in financial_data_records %}
+                    <tr>
+                      <td>{{ finance_record.seed_cost }}</td> 
+                      <td>{{ finance_record.fertilizer_cost }}</td>
+                      <td>{{ finance_record.labor_cost }}</td>
+                      <td>{{ finance_record.equipment_cost }}</td>
+                      <td>{{ finance_record.pesticide_cost }}</td>
+                      <td>{{ finance_record.revenue }}</td>
+                    </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            {% else %}
+              <p>No Financial Data found.</p>
+            {% endif %}
+          <a href="/crop/{{ crop.id }}/add-financial">Add Financial Data</a>
         </div>
 
     </div>

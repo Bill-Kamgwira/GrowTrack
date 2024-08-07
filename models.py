@@ -39,8 +39,8 @@ class Crop(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey('users1.id'))
     user = db.relationship('User', back_populates='crops')
     crop_management_records = db.relationship('CropManagement', back_populates='crop')
-    yield_data = db.relationship('YieldData', backref='crop')
-    financial_data = db.relationship('FinancialData', backref='crop', uselist=False)  # One-to-one relationship
+    yield_data = db.relationship('YieldData', back_populates='crop')
+    financial_data = db.relationship('FinancialData', back_populates='crop')  # One-to-one relationship
 
 class CropManagement(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -53,7 +53,7 @@ class CropManagement(db.Model):
     #Specific data for irrigation
     irrigation_type = db.Column(db.String(50))
     irrigation_amount = db.Column(db.Float)
-    irrigation_amount = db.Column(db.Date)
+    irrigation_date = db.Column(db.Date)
     # Specifc data for Pest & Disease Control
     control_type = db.Column(db.String(50))
     control_amount = db.Column(db.Float)
@@ -77,6 +77,8 @@ class YieldData(db.Model):
     post_harvest_loss = db.Column(db.Float)
     factors_affecting_yield = db.Column(db.Text)
 
+    crop = db.relationship('Crop')
+
 class FinancialData(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     crop_id = db.Column(db.Integer, db.ForeignKey('crop.id'), unique=True)  # One-to-one relationship
@@ -86,4 +88,5 @@ class FinancialData(db.Model):
     equipment_cost = db.Column(db.Float)
     pesticide_cost = db.Column(db.Float)
     revenue = db.Column(db.Float)
+    crop = db.relationship('Crop')
 

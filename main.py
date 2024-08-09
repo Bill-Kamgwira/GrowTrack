@@ -224,19 +224,19 @@ def add_crop_management(crop_id):
         if management_type == 'fertilization':
             management_data = {
             'fertilizer_type' : request.form.get('fertilizer_type'),
-            'fertilizer_amount' : request.form.get('fertilizer_amount'),
+            'fertilizer_amount' : float(request.form.get('fertilizer_amount')),
             'fertilizer_date' : datetime.strptime(request.form.get('fertilizer_date'), '%Y-%m-%d').date(),
             }
         elif management_type == 'irrigation':
             management_data = {
             'irrigation_type' : request.form.get('irrigation_type'),
-            'irrigation_amount' : request.form.get('irrigation_amount'),
+            'irrigation_amount' : float(request.form.get('irrigation_amount')),
             'irrigation_date' : datetime.strptime(request.form.get('irrigation_date'), '%Y-%m-%d').date(),
             }
         elif management_type == 'pest_control':
             management_data = {
             'control_type' : request.form.get('control_type'),
-            'control_amount' : request.form.get('control_amount'),
+            'control_amount' : float(request.form.get('control_amount')),
             'control_date' : datetime.strptime(request.form.get('control_date'), '%Y-%m-%d').date(),
             }
         elif management_type == 'weeding':
@@ -247,7 +247,7 @@ def add_crop_management(crop_id):
         elif management_type == 'labor':
             management_data = {
             'tasks_completed' : request.form.get('tasks_completed'),
-            'hours_accrued' : request.form.get('hours_accrued'),
+            'hours_accrued' : float(request.form.get('hours_accrued')),
             'labour_date' : datetime.strptime(request.form.get('labour_date'), '%Y-%m-%d').date(),
             }
 
@@ -270,10 +270,10 @@ def add_YieldData(crop_id):
     if request.method == 'POST':
         
         yield_production = YieldData(
-            quantity=request.form['yield-quantity'],
+            quantity=float(request.form['yield-quantity']),
             quality=request.form['yield-quality'],
             harvest_date = datetime.strptime(request.form['harvest_date'], '%Y-%m-%d').date(),
-            post_harvest_loss=request.form['post_harvest_losses'],
+            post_harvest_loss=float(request.form['post_harvest_losses']),
             factors_affecting_yield=request.form['factors'],
             crop = crop
         )
@@ -292,12 +292,12 @@ def add_FinanceData(crop_id):
     if request.method == 'POST':
         
         financial_data = FinancialData(
-            seed_cost=request.form['seed-cost'],
-            fertilizer_cost=request.form['fertilizer_cost'],
-            labor_cost=request.form['labor_cost'],
-            equipment_cost=request.form['equipment_cost'],
-            pesticide_cost=request.form['pesticide_cost'],
-            revenue=request.form['revenue'],
+            seed_cost=float(request.form['seed-cost']),
+            fertilizer_cost=float(request.form['fertilizer_cost']),
+            labor_cost=float(request.form['labor_cost']),
+            equipment_cost=float(request.form['equipment_cost']),
+            pesticide_cost=float(request.form['pesticide_cost']),
+            revenue=float(request.form['revenue']),
             crop = crop
         )
         db.session.add(financial_data)

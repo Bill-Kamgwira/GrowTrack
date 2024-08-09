@@ -1,7 +1,3 @@
-
-
-
-
 document.addEventListener('DOMContentLoaded', () => {
     const managementTypeSelect = document.getElementById('management_type');
     const managementDetailsContainer = document.getElementById('management-details');
@@ -178,5 +174,57 @@ document.addEventListener('DOMContentLoaded', () => {
         managementDetailsContainer.appendChild(taskDateLabel);
         managementDetailsContainer.appendChild(taskDateInput);
 
-    }
-});})
+    }});
+    
+    function validateForm() {
+        let isValid = true;
+      
+        const selectedType = document.getElementById('management_type').value;
+      
+    
+      
+        if (selectedType === 'fertilization') {
+          const fertilizerAmountInput = document.getElementById('fertilizer_amount');
+          const fertilizerAmount = parseFloat(fertilizerAmountInput.value);
+          if (isNaN(fertilizerAmount) || fertilizerAmount <= 0) {
+            alert('Please enter a valid fertilizer amount (positive number).');
+            isValid = false;
+            fertilizerAmountInput.focus(); // Set focus on the invalid input
+          }
+        } else if (selectedType === 'irrigation') {
+          const irrigationAmountInput = document.getElementById('irrigation_amount');
+          const irrigationAmount = parseFloat(irrigationAmountInput.value);
+          if (isNaN(irrigationAmount) || irrigationAmount <= 0) {
+            alert('Please enter a valid irrigation amount (positive number).');
+            isValid = false;
+            irrigationAmountInput.focus();
+          }
+        } else if (selectedType === 'pest_control') {
+          const controlAmountInput = document.getElementById('control_amount');
+          const controlAmount = parseFloat(controlAmountInput.value);
+          if (isNaN(controlAmount) || controlAmount <= 0) {
+            alert('Please enter a valid control amount (positive number).');
+            isValid = false;
+            controlAmountInput.focus();
+          }
+        } else if (selectedType === 'labor') {
+          const hoursAccruedInput = document.getElementById('hours_accrued');
+          const hoursAccrued = parseFloat(hoursAccruedInput.value);
+          if (isNaN(hoursAccrued) || hoursAccrued <= 0) {
+            alert('Please enter valid hours accrued (positive number).');
+            isValid = false;
+            hoursAccruedInput.focus();
+          }
+        }
+      
+        return isValid;
+      }
+
+    const form = document.querySelector('form');
+    form.addEventListener('submit', (event) => {
+        if (!validateForm()) {
+      event.preventDefault(); // Prevent form submission if validation fails
+        }
+    });
+      
+    });

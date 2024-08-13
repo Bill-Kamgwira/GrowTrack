@@ -2,8 +2,12 @@
 <html>
 <head>
     <title>View Crops</title>
+    <link rel="shortcut icon" href="/static/favicon.ico">
+    <link rel="stylesheet" href="/static/base.css">
+    <link rel="stylesheet" href="/static/view_crops.css">
 </head>
 <body>
+    <div class="crop-list-container">
     <h1>Your Crops</h1>
     <h3><a href="/dashboard">Back to Dashboard</a></h3>
     <ul>
@@ -11,5 +15,6 @@
         <li><a href="/crop/{{ crop.id }}">{{ crop.name }}</a></li>
         {% endfor %}
     </ul>
+</div>
 </body>
 </html>

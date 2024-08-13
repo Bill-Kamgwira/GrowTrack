@@ -2,8 +2,12 @@
 <html>
 <head>
     <title>Login</title>
+    <link rel="shortcut icon" href="/static/favicon.ico">
+    <link rel="stylesheet" href="/static/login.css">
 </head>
 <body>
+  <div class="login-form">
+    <img src="/static/logo-new.png" alt="GrowTrack Logo" class="logo">
     <h1>Login</h1>
     <form method="POST" action="/login">
         <label for="email">Email:</label>
@@ -24,5 +28,6 @@
     {% endif %}
     {% endwith %}
 <p>Don't have an account? <a href="/signup">Sign Up</a></p>
+</div>
 </body>
 </html>

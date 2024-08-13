@@ -1,0 +1,36 @@
+body {
+    background-color: #3C6D71;
+}
+.container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+}
+
+.content {
+    text-align: center;
+    color: white; /* Or choose another color */
+    font-size: 24px; /* Adjust font size as needed */
+    font-family: Arial, sans-serif; /* Replace with your preferred font */
+}
+
+.logo {
+    width: 200px; /* Adjust width as needed */
+    height: auto; /* Maintain aspect ratio */
+    margin-bottom: 20px; /* Add margin below the logo */
+}
+
+a {
+    text-decoration: none; /* Remove underline */
+    padding: 10px 20px; /* Add padding for button-like appearance */
+    background-color: #fff; /* Button background color */
+    color: #3C6D71; /* Button text color */
+    border-radius: 5px; /* Rounded corners */
+    display: inline-block; /* Display as inline-block for better styling */
+    margin: 5px; /* Add spacing between buttons */
+}
+
+a:hover {
+    background-color: #f0f0f0; /* Lighter background on hover */
+}

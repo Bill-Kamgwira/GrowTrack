@@ -2,17 +2,24 @@
 <html>
 <head>
     <title>Dashboard</title>
+    <link rel="shortcut icon" href="/static/favicon.ico">
+    <link rel="stylesheet" href="/static/base.css">
+    <link rel="stylesheet" href="/static/dashboard.css">
 </head>
 <body>
-    <h1>Hello, {{ current_user.username }}!</h1>
-    <a href="/profile">Profile</a>
-    <br>
-    <a href="/add_crop">Add Crop</a>
-    <br>
-    <a href="/view_crops">View Crops</a>
-    <br>
-    <br>
-    <br>
-    <a href="/logout">Logout</a>
+    <div class="dashboard-container">
+        <h1>Hello, {{ current_user.username }}!</h1>
+        <nav>
+            <ul>
+                <li><a href="/profile">Profile</a></li>
+                <li><a href="/add_crop">Add Crop</a></li>
+                <li><a href="/view_crops">View Crops</a></li>
+                <li><a href="/logout">Logout</a></li>
+            </ul>
+        </nav>
+        <div class="content">
+            </div>
+        
+    </div>
 </body>
 </html>

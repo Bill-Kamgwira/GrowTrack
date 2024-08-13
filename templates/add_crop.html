@@ -2,35 +2,47 @@
 <html>
 <head>
     <title>Add Crop</title>
+    <link rel="shortcut icon" href="/static/favicon.ico">
+    <link rel="stylesheet" href="/static/base.css">
+    <link rel="stylesheet" href="/static/add_crop.css">
 </head>
 <body>
+    <div class="add-crop-container">
     <h3><a href="/dashboard">Back to Dashboard</a></h3>
     <h1>Add Crop</h1>
     <form method="POST">
         <label for="name">Crop Name:</label>
         <input type="text" name="name" id="name" required>
         <br>
+        <br>
 
         <label for="planting_date">Planting Date:</label>
         <input type="date" name="planting_date" id="planting_date">
+        <br>
         <br>
 
         <label for="expected_harvest_date">Expected Harvest Date:</label>
         <input type="date" name="expected_harvest_date" id="expected_harvest_date">
         <br>
+        <br>
 
         <label for="crop_variety">Crop Variety:</label>
         <input type="text" name="crop_variety" id="crop_variety">
+        <br>
         <br>
 
         <label for="acreage">Acreage Planted:</label>
         <input type="number" name="acreage" id="acreage" required>
         <br>
+        <br>
 
         <label for="crop_rotation">Crop Rotation History:</label>
         <input type="text" name="crop_rotation" id="crop_rotation">
+        <br>
+        <br>
 
         <button type="submit">Save Crop</button>
     </form>
+</div>
 </body>
 </html>

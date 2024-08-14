@@ -1,8 +1,7 @@
 const tabs = document.querySelectorAll('.tabs li a');
 const tabContent = document.querySelectorAll('.tab-pane');
 
-// Show the first tab content by default
-tabContent[0].classList.add('active');
+
 
 tabs.forEach(tab => {
   tab.addEventListener('click', (e) => {
@@ -18,3 +17,4 @@ tabs.forEach(tab => {
     document.querySelector(target).classList.add('active');
   });
 });
+

@@ -8,13 +8,15 @@
 </head>
 <body>
     <div class="crop-list-container">
-    <h1>Your Crops</h1>
-    <h3><a href="/dashboard">Back to Dashboard</a></h3>
-    <ul>
-        {% for crop in crops %}
-        <li><a href="/crop/{{ crop.id }}">{{ crop.name }}</a></li>
-        {% endfor %}
-    </ul>
-</div>
+        <h1>Your Crops</h1>
+        <h3><a href="/dashboard">Back to Dashboard</a></h3>
+        <div class="crop-items">
+          {% for crop in crops %}
+            <li class="crop-item">
+              <a href="/crop/{{ crop.id }}">{{ crop.name }}</a>
+            </li>
+          {% endfor %}
+        </div>
+      </div>
 </body>
 </html>

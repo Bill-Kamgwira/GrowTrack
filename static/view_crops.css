@@ -11,24 +11,35 @@ h1 {
 }
 
 h3 a {
-  /* Use styles from previous section (back to dashboard link) */
+  color: white;
+    text-decoration: none;
+    padding: 5px 10px;
+    border-radius: 5px;
+    background-color: #4CAF50; /* Use styles from previous section (back to dashboard link) */
 }
 
-ul {
-  list-style: none;
-  padding: 0;
-  margin: 0;
+.crop-items {
+  display: flex; /* Arrange items in a row */
+  flex-wrap: wrap; /* Allow items to wrap if needed */
+  gap: 10px; /* Add spacing between items */
 }
 
-ul li {
-  margin-bottom: 10px;
+.crop-item {
+  background-color: #4CAF50; /* Button background color */
+  color: white; /* Button text color */
+  padding: 10px 20px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer; /* Indicate clickable element */
+  text-align: center; /* Center text within button */
+  transition: background-color 0.2s ease-in-out; /* Add hover effect */
 }
-
-ul li a {
-  color: #333; /* Change link color */
+.crop-item a {
   text-decoration: none;
+  color: inherit; /* Inherit the color from the parent element */
+  font-weight: bold;
 }
 
-ul li a:hover {
-  text-decoration: underline; /* Add hover effect */
+.crop-item:hover {
+  background-color: #3e8e41; /* Change background color on hover */
 }

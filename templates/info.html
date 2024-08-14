@@ -2,7 +2,7 @@
 <html>
 <head>
     <link rel="stylesheet" href="/static/info.css">
-    
+    <link rel="stylesheet" href="/static/base.css">
     <title>Crop Details</title>
     <link rel="shortcut icon" href="/static/favicon.ico">
 </head>
@@ -10,10 +10,10 @@
     <h1>Crop Details</h1>
     <h3><a href="/dashboard">Back to Dashboard</a></h3>
     <ul class="tabs">
-        <li><a href="#crop-details">Crop Details</a></li>
-        <li><a href="#crop-management">Crop Management</a></li>
-        <li><a href="#yield-data">Yield Data</a></li>
-        <li><a href="#financial-data">Financial Data</a></li>
+        <li><a href="#crop-details" onclick="showTab('crop-details')">Crop Details</a></li>
+        <li><a href="#crop-management" onclick="showTab('crop-management')">Crop Management</a></li>
+        <li><a href="#yield-data" onclick="showTab('yield-data')">Yield Data</a></li>
+        <li><a href="#financial-data" onclick="showTab('financial-data')">Financial Data</a></li>
     </ul>
     <div class="tab-content">
         <div id="crop-details" class="tab-pane">
@@ -49,6 +49,9 @@
             {% else %}
               <p>No crop management data found.</p>
             {% endif %}
+            <br>
+            <br>
+            <br>
             <a href="/crop/{{ crop.id }}/add-management">Add Crop Management Data</a>
           </div>
           
@@ -80,6 +83,9 @@
             {% else %}
               <p>No Yield & Production data found.</p>
             {% endif %}
+            <br>
+            <br>
+            <br>
             <a href="/crop/{{ crop.id }}/add-yield_production">Add Yield & Production Data</a>
           </div>
           
@@ -113,6 +119,9 @@
             {% else %}
               <p>No Financial Data found.</p>
             {% endif %}
+            <br>
+            <br>
+            <br>
           <a href="/crop/{{ crop.id }}/add-financial">Add Financial Data</a>
         </div>
 

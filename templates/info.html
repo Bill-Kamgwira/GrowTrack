@@ -16,14 +16,30 @@
         <li><a href="#financial-data" onclick="showTab('financial-data')">Financial Data</a></li>
     </ul>
     <div class="tab-content">
-        <div id="crop-details" class="tab-pane">
-            
-            <p>Crop Name: {{ crop.name }}</p>
-            <p>Planting Date: {{ crop.planting_date }}</p>
-            <p>Expected Harvest Date: {{ crop.expected_harvest_date }}</p>
-            <p>Acreage: {{ crop.acreage }}</p>
-            <p>Crop Rotation History: {{ crop.crop_rotation_history }}</p>
-        </div>
+      <div id="crop-details" class="tab-pane">
+        <ul class="crop-details-list">
+          <li>
+            <strong>Crop Name:</strong>
+            <span>{{ crop.name }}</span>
+          </li>
+          <li>
+            <strong>Planting Date:</strong>
+            <span>{{ crop.planting_date }}</span>
+          </li>
+          <li>
+            <strong>Expected Harvest Date:</strong>
+            <span>{{ crop.expected_harvest_date }}</span>
+          </li>
+          <li>
+            <strong>Acreage:</strong>
+            <span>{{ crop.acreage }}</span>
+          </li>
+          <li>
+            <strong>Crop Rotation History:</strong>
+            <span>{{ crop.crop_rotation_history }}</span>
+          </li>
+          </ul>
+      </div>
 
         <div id="crop-management" class="tab-pane">
             <h2>Crop Management Records</h2>

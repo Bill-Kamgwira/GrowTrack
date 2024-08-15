@@ -25,7 +25,19 @@ h3 a {
   margin-right: 10px; /* Add spacing between tabs */
 }
 
+.crop-details-list {
+  display: flex;
+  flex-direction: column; /* Change to column layout */
+  align-items: center; /* Align items to the start (top) */
+  justify-content: space-around; /* Distribute items vertically with space */
+}
 
+
+.crop-details-list li {
+  /* Remove flex: 1; as it's not needed for vertical layout */
+  margin: 10px 0; /* Adjust margin for vertical spacing */
+  font-size: 30px;
+}
 
 .tabs li a {
   color: black;

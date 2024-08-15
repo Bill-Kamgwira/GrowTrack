@@ -1,0 +1,49 @@
+/* Specific styles for the Add Crop Management page */
+
+.tab-pane {
+    /* Styles for the container element */
+    padding: 20px;
+  }
+  
+  select {
+    appearance: none; /* Remove default browser styling */
+    -webkit-appearance: none; /* For older WebKit browsers */
+    -moz-appearance: none; /* For older Firefox browsers */
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    background-color: #fff; /* Or your desired background color */
+    color: #333; /* Or your desired text color */
+  }
+  
+  .error {
+    /* Styles for error messages */
+    color: red;
+    font-size: smaller;
+    margin-bottom: 5px;
+  }
+
+  #management-details {
+    display: flex;
+    flex-direction: column; /* Change to column layout */
+    gap: 10px; /* Adjust the gap as needed */
+    align-items: center;
+    font-weight: bold;
+  }
+
+  #management-details input {
+    width: 30%; /* Adjust the width as needed */
+    
+  }
+
+  button {
+    background-color: #4CAF50;
+    color: white;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 16px;
+    font-weight: bold;
+  }
+  /* Additional styles for specific form elements and layout as needed */

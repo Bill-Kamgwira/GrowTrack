@@ -7,5 +7,12 @@ body {
     height: 100vh; /* Sets the body height to 100% of the viewport height */
     color: white;
 }
+h3 a {
+    color: white;
+      text-decoration: none;
+      padding: 5px 10px;
+      border-radius: 5px;
+      background-color: #4CAF50; /* Use styles from previous section (back to dashboard link) */
+  }
 
 /* Other global styles */

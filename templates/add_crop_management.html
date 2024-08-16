@@ -6,11 +6,20 @@
     <link rel="shortcut icon" href="/static/favicon.ico">
     <link rel="stylesheet" href="/static/base.css">
     <link rel="stylesheet" href="/static/add_management.css">
+    <link rel="stylesheet" href="/static/navigation.css">
 </head>
 <body>
     <div id="crop-management" class="tab-pane">
         <h2>Crop Management</h2>
-        <h3><a href="/dashboard">Back to Dashboard</a></h3>
+        <nav>
+            <ul>
+              <li><h3><a href="/dashboard">Dashboard</a></h3></li>
+              <li><h3><a href="/profile">Profile</a></h3></li>
+              <li><h3><a href="/add_crop">Add Crop</a></h3></li>
+              <li><h3><a href="/view_crops">View Crops</a></h3></li>
+              <li><h3><a href="/logout">Logout</a></h3></li>
+              </ul>
+          </nav>
         <form method="POST">
             <label for="management_type">Management Type:</label>
             <select name="management_type" id="management_type">

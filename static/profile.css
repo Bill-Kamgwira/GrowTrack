@@ -9,10 +9,21 @@ body {
   
   p {
     margin-bottom: 10px;
+    display: block;
+    font-weight: bold;
+    margin-bottom: 5px;
+  
   }
   
   a {
     /* ... existing link styles */
     display: inline-block;
     padding: 10px 20px;
+    color: white;
+      text-decoration: none;
+      padding: 5px 10px;
+      border-radius: 5px;
+      background-color: #4CAF50; /* Use styles from previous section (back to dashboard link) */
   }
+
+  

@@ -1,0 +1,23 @@
+nav {
+    background-color: #4CAF50;
+    padding: 0px;
+    display: flex; /* Make the navigation items display in a row */
+    justify-content: space-between; /* Distribute items evenly */
+}
+
+nav ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex; /* Make the list items display in a row */
+}
+
+nav li {
+    margin: 0 10px; /* Add spacing between items */
+}
+
+
+nav a {
+    color: white;
+    text-decoration: none;
+}

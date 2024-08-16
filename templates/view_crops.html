@@ -5,11 +5,20 @@
     <link rel="shortcut icon" href="/static/favicon.ico">
     <link rel="stylesheet" href="/static/base.css">
     <link rel="stylesheet" href="/static/view_crops.css">
+    <link rel="stylesheet" href="/static/navigation.css">
 </head>
 <body>
     <div class="crop-list-container">
         <h1>Your Crops</h1>
-        <h3><a href="/dashboard">Back to Dashboard</a></h3>
+        <nav>
+          <ul>
+            <li><h3><a href="/dashboard">Dashboard</a></h3></li>
+            <li><h3><a href="/profile">Profile</a></h3></li>
+            <li><h3><a href="/add_crop">Add Crop</a></h3></li>
+            <li><h3><a href="/view_crops">View Crops</a></h3></li>
+            <li><h3><a href="/logout">Logout</a></h3></li>
+            </ul>
+        </nav>
         <div class="crop-items">
           {% for crop in crops %}
             <li class="crop-item">

@@ -5,10 +5,19 @@
     <link rel="stylesheet" href="/static/base.css">
     <title>Crop Details</title>
     <link rel="shortcut icon" href="/static/favicon.ico">
+    <link rel="stylesheet" href="/static/navigation.css">
 </head>
 <body>
     <h1>Crop Details</h1>
-    <h3><a href="/dashboard">Back to Dashboard</a></h3>
+    <nav>
+      <ul>
+        <li><h3><a href="/dashboard">Dashboard</a></h3></li>
+        <li><h3><a href="/profile">Profile</a></h3></li>
+        <li><h3><a href="/add_crop">Add Crop</a></h3></li>
+        <li><h3><a href="/view_crops">View Crops</a></h3></li>
+        <li><h3><a href="/logout">Logout</a></h3></li>
+        </ul>
+    </nav>
     <ul class="tabs">
         <li><a href="#crop-details" onclick="showTab('crop-details')">Crop Details</a></li>
         <li><a href="#crop-management" onclick="showTab('crop-management')">Crop Management</a></li>

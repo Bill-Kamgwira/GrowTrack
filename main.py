@@ -311,8 +311,8 @@ def add_FinanceData(crop_id):
 
     return render_template('add_financial.html', crop = crop)
 
-@app.route('/export/csv/<int:crop_id>')
-def export_crop_data(crop_id):
+@app.route('/export/csv/<int:crop_id>/crop_manage')
+def export_crop_manage_data(crop_id):
     crop = Crop.query.get_or_404(crop_id)
     crop_management_records = CropManagement.query.filter_by(crop_id=crop_id).all()
     yield_data_records = YieldData.query.filter_by(crop_id=crop_id).all()
@@ -320,53 +320,77 @@ def export_crop_data(crop_id):
 
     data = []
     for record in [crop, *crop_management_records, *yield_data_records, *financial_data_records]:
-        data.append({k: v for k, v in record.__dict__.items() if not k.startswith('_sa_')})
+        if isinstance(record, CropManagement):
+            filtered_record = {
+                'fertilizer_type': record.fertilizer_type or "",
+                'fertilizer_amount': record.fertilizer_amount or "",
+                'fertilizer_date': record.fertilizer_date or "",
+                'irrigation_type': record.irrigation_type or "",
+                'irrigation_amount': record.irrigation_amount or "",
+                'irrigation_date': record.irrigation_date or "",
+                'control_type': record.control_type or "",
+                'control_amount': record.control_amount or "",
+                'control_date': record.control_date or "",
+                'weeding_method': record.weeding_method or "",
+                'weeding_date': record.weeding_date or "",
+                'tasks_completed': record.tasks_completed or "",
+                'hours_accrued': record.hours_accrued or "",
+                'labour_date': record.labour_date or "",
+            }
+            data.append(filtered_record)
 
-    # Define the desired CSV header fields, including crop-specific fields
-    fields = [
-        'crop_name',
-        'planting_date',
-        'expected_harvest_date',
-        'acreage',
-        'crop_rotation_history',
-        'crop_variety',
-        'user_id',  # Include crop-specific fields
-        'management_type',
-        'fertilizer_type',
-        'fertilizer_amount',
-        'fertilizer_date',
-        'irrigation_type',
-        'irrigation_amount',
-        'irrigation_date',
-        'control_type',
-        'control_amount',
-        'control_date',
-        'weeding_method',
-        'weeding_date',
-        'tasks_completed',
-        'hours_accrued',
-        'labour_date',
-        'yield_quantity',
-        'yield_quality',
-        'harvest_date',
-        'post_harvest_losses',
-        'factors_affecting_yield',
-        'seed_cost',
-        'fertilizer_cost',
-        'labor_cost',
-        'equipment_cost',
-        'pesticide_cost',
-        'revenue',
-        'name',
-        'id',
-        'quantity', 
-        'quality', 
-        'post_harvest_loss',
-        'crop_id'
-    ]
+    # Define the desired CSV header fields based on the filtered data
+    fields = list(data[0].keys())
 
-    # Use send_csv with the defined fields
-    return send_csv(data, f"{crop.name}_data.csv", fields=fields)
+    # Use send_csv to generate and return the CSV response
+    return send_csv(data, f"{crop.name}_Cropmanagement.csv", fields=fields)
+
+@app.route('/export/csv/<int:crop_id>/yield_data')
+def export_yield_data(crop_id):
+    crop = Crop.query.get_or_404(crop_id)
+    crop_management_records = CropManagement.query.filter_by(crop_id=crop_id).all()
+    yield_data_records = YieldData.query.filter_by(crop_id=crop_id).all()
+    financial_data_records = FinancialData.query.filter_by(crop_id=crop_id).all()
+
+    data = []
+    for record in [crop, *crop_management_records, *yield_data_records, *financial_data_records]:
+        if isinstance(record, YieldData):
+            yield_data_fields = {
+                'quantity': record.quantity or "",
+                'quality': record.quality or "",
+                'harvest_date': record.harvest_date or "",
+                'post_harvest_loss': record.post_harvest_loss or "",
+                'factors_affecting_yield': record.factors_affecting_yield or "",
+            }
+            data.append(yield_data_fields)
+
+    # Define the desired CSV header fields based on the filtered data
+    fields = list(data[0].keys())
+    return send_csv(data, f"{crop.name}_yield_data.csv", fields=fields)
+
+@app.route('/export/csv/<int:crop_id>/financial_data')
+def export_financial_data(crop_id):
+    crop = Crop.query.get_or_404(crop_id)
+    crop_management_records = CropManagement.query.filter_by(crop_id=crop_id).all()
+    yield_data_records = YieldData.query.filter_by(crop_id=crop_id).all()
+    financial_data_records = FinancialData.query.filter_by(crop_id=crop_id).all()
+
+    data = []
+    for record in [crop, *crop_management_records, *yield_data_records, *financial_data_records]:
+        if isinstance(record, FinancialData):
+            financial_data_fields = {
+                'seed_cost': record.seed_cost or "",
+                'fertilizer_cost': record.fertilizer_cost or "",
+                'labor_cost': record.labor_cost or "",
+                'equipment_cost': record.equipment_cost or "",
+                'pesticide_cost': record.pesticide_cost or "",
+                'revenue': record.revenue or "",
+            }
+            data.append(financial_data_fields)
+
+    # Define the desired CSV header fields based on the filtered data
+    fields = list(data[0].keys())
+    return send_csv(data, f"{crop.name}_financial_data.csv", fields=fields)
 
 # Run the development server (add this outside any functions)
 if __name__ == "__main__":

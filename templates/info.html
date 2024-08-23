@@ -51,37 +51,157 @@
           
       </div>
 
-        <div id="crop-management" class="tab-pane">
-            <h2>Crop Management Records</h2>
-            {% if crop_management_records %}
-              <table>
-                <thead>
-                  <tr>
-                    <th>Management Type</th>
-                    <th>Details</th>
-                    <th>Date</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {% for management_record in crop_management_records %}
-                    <tr>
-                      <td>{{ management_record.fertilizer_type or management_record.irrigation_type or management_record.control_type or management_record.weeding_method or management_record.tasks_completed }}</td>
-                      <td>{{ management_record.fertilizer_amount or management_record.irrigation_amount or management_record.control_amount or management_record.hours_accrued }}</td>
-                      <td>{{ management_record.fertilizer_date or management_record.irrigation_date or management_record.control_date or management_record.weeding_date or management_record.labour_date }}</td>
-                    </tr>
-                  {% endfor %}
-                </tbody>
-              </table>
-            {% else %}
-              <p>No crop management data found.</p>
-            {% endif %}
-            <br>
-            <br>
-            <a href="{{ url_for('export_crop_manage_data', crop_id=crop.id) }}" class="export-button">Download Crop Management Data</a>
-            <br>
-            <br>
-            <a href="/crop/{{ crop.id }}/add-management">Add Crop Management Data</a>
-          </div>
+      <div id="crop-management" class="tab-pane">
+                <h2>Crop Management Records</h2>
+        
+                <ul class="tabs">
+                  <li><a href="#Fertilizer" onclick="showTab('fertilizer-info')">Fertilizer Information</a></li>
+                  <li><a href="#Irrigation" onclick="showTab('irrigation-info')">Irrigation Information</a></li>
+                  <li><a href="#Pest-Control" onclick="showTab('pest-info')">Pest Control Information</a></li>
+                  <li><a href="#Weeding" onclick="showTab('weeding-info')">Weeding Information</a></li>
+                  <li><a href="#Labour" onclick="showTab('labour-info')">Labour Information</a></li>
+              </ul>
+        
+              <div id="fertilizer-info" class="tab-pane">
+                {% if crop_management_records %}
+                
+                  <h3>Fertilizer Information</h3>
+                  <table class="management-table">
+                    <thead>
+                      <tr>
+                        <th>Fertilizer Type</th>
+                        <th>Amount</th>
+                        <th>Date</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {% for record in crop_management_records if record.fertilizer_type %}
+                        <tr>
+                          <td>{{ record.fertilizer_type }}</td>
+                          <td>{{ record.fertilizer_amount }}</td>
+                          <td>{{ record.fertilizer_date }}</td>
+                        </tr>
+                      {% endfor %}
+                    </tbody>
+                  </table>
+                {% else %}
+                  <p>No fertilizer data found.</p>
+                {% endif %}
+              </div>
+              
+              <div id="irrigation-info" class="tab-pane">
+                {% if crop_management_records %}
+                
+                  <h3>Irrigation Information</h3>
+                  <table class="management-table">
+                    <thead>
+                      <tr>
+                        <th>Irrigation Type</th>
+                        <th>Amount</th>
+                        <th>Date</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {% for record in crop_management_records if record.irrigation_type %}
+                        <tr>
+                          <td>{{ record.irrigation_type }}</td>
+                          <td>{{ record.irrigation_amount }}</td>
+                          <td>{{ record.irrigation_date }}</td>
+                        </tr>
+                      {% endfor %}
+                    </tbody>
+                  </table>
+                {% else %}
+                  <p>No irrigation data found.</p>
+                {% endif %}
+              </div>
+              
+              <div id="pest-info" class="tab-pane">
+                {% if crop_management_records %}
+                
+                  <h3>Pest Control Information</h3>
+                  <table class="management-table">
+                    <thead>
+                      <tr>
+                        <th>Control Type</th>
+                        <th>Amount</th>
+                        <th>Date</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {% for record in crop_management_records if record.control_type %}
+                        <tr>
+                          <td>{{ record.control_type }}</td>
+                          <td>{{ record.control_amount }}</td>
+                          <td>{{ record.control_date }}</td>
+                        </tr>
+                      {% endfor %}
+                    </tbody>
+                  </table>
+                {% else %}
+                  <p>No pest control data found.</p>
+                {% endif %}
+              </div>
+              
+              <div id="weeding-info" class="tab-pane">
+                {% if crop_management_records %}
+                
+                  <h3>Weeding Information</h3>
+                  <table class="management-table">
+                    <thead>
+                      <tr>
+                        <th>Weeding Method</th>
+                        <th>Date</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {% for record in crop_management_records if record.weeding_method %}
+                        <tr>
+                          <td>{{ record.weeding_method }}</td>
+                          <td>{{ record.weeding_date }}</td>
+                        </tr>
+                      {% endfor %}
+                    </tbody>
+                  </table>
+                {% else %}
+                  <p>No weeding data found.</p>
+                {% endif %}
+              </div>
+        
+        <div id="labour-info" class="tab-pane">
+                {% if crop_management_records %}
+                
+                  <h3>Labour Information</h3>
+                  <table class="management-table">
+                    <thead>
+                      <tr>
+                        <th>Tasks Completed</th>
+                        <th>Hours Accrued</th>
+                        <th>Date</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {% for record in crop_management_records if record.tasks_completed %}
+                        <tr>
+                          <td>{{ record.tasks_completed }}</td>
+                          <td>{{ record.hours_accrued }}</td>
+                          <td>{{ record.labour_date }}</td>
+                        </tr>
+                      {% endfor %}
+                    </tbody>
+                  </table>
+                {% else %}
+                  <p>No labour data found.</p>
+                {% endif %}
+              </div>
+              
+                <br>
+                <br>
+                <a href="{{ url_for('export_crop_manage_data', crop_id=crop.id) }}" class="export-button">Download Crop Management Data</a>
+                <br>
+                <br>
+                <a href="/crop/{{ crop.id }}/add-management">Add Crop Management Data</a>
+              </div>
           
           
           <div id="yield-data" class="tab-pane">

@@ -6,6 +6,15 @@
   display: block; /* Show the active tab content */
 }
 
+.export-button {
+  background-color: #4CAF50;
+  color: white;
+  padding: 10px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
 h3 a {
   color: white;
     text-decoration: none;

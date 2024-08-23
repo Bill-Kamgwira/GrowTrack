@@ -1,5 +1,5 @@
-from flask import Flask, render_template, request, redirect, url_for, flash
-from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
+from flask import Flask, render_template, request, redirect, url_for, flash, make_response, jsonify
+from flask_login import LoginManager, login_user, login_required, logout_user, current_user
 from werkzeug.security import generate_password_hash, check_password_hash
 import re
 from supdb import db
@@ -7,6 +7,10 @@ from models import User, Crop, CropManagement, YieldData, FinancialData
 import secrets
 from datetime import datetime
 from flask_migrate import Migrate
+import io
+from flask_csv import send_csv
+
+
 
 app = Flask(__name__, static_url_path='/static')
 
@@ -306,6 +310,63 @@ def add_FinanceData(crop_id):
         return redirect(url_for('view_crop', crop_id=crop_id)) 
 
     return render_template('add_financial.html', crop = crop)
+
+@app.route('/export/csv/<int:crop_id>')
+def export_crop_data(crop_id):
+    crop = Crop.query.get_or_404(crop_id)
+    crop_management_records = CropManagement.query.filter_by(crop_id=crop_id).all()
+    yield_data_records = YieldData.query.filter_by(crop_id=crop_id).all()
+    financial_data_records = FinancialData.query.filter_by(crop_id=crop_id).all()
+
+    data = []
+    for record in [crop, *crop_management_records, *yield_data_records, *financial_data_records]:
+        data.append({k: v for k, v in record.__dict__.items() if not k.startswith('_sa_')})
+
+    # Define the desired CSV header fields, including crop-specific fields
+    fields = [
+        'crop_name',
+        'planting_date',
+        'expected_harvest_date',
+        'acreage',
+        'crop_rotation_history',
+        'crop_variety',
+        'user_id',  # Include crop-specific fields
+        'management_type',
+        'fertilizer_type',
+        'fertilizer_amount',
+        'fertilizer_date',
+        'irrigation_type',
+        'irrigation_amount',
+        'irrigation_date',
+        'control_type',
+        'control_amount',
+        'control_date',
+        'weeding_method',
+        'weeding_date',
+        'tasks_completed',
+        'hours_accrued',
+        'labour_date',
+        'yield_quantity',
+        'yield_quality',
+        'harvest_date',
+        'post_harvest_losses',
+        'factors_affecting_yield',
+        'seed_cost',
+        'fertilizer_cost',
+        'labor_cost',
+        'equipment_cost',
+        'pesticide_cost',
+        'revenue',
+        'name',
+        'id',
+        'quantity', 
+        'quality', 
+        'post_harvest_loss',
+        'crop_id'
+    ]
+
+    # Use send_csv with the defined fields
+    return send_csv(data, f"{crop.name}_data.csv", fields=fields)
 
 # Run the development server (add this outside any functions)
 if __name__ == "__main__":

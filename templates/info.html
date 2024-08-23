@@ -48,6 +48,7 @@
             <span>{{ crop.crop_rotation_history }}</span>
           </li>
           </ul>
+          <a href="{{ url_for('export_crop_data', crop_id=crop.id) }}" class="export-button">Download Crop Data</a>
       </div>
 
         <div id="crop-management" class="tab-pane">

@@ -19,10 +19,10 @@
         </ul>
     </nav>
     <ul class="tabs">
-        <li><a href="#crop-details" onclick="showTab('crop-details')">Crop Details</a></li>
-        <li><a href="#crop-management" onclick="showTab('crop-management')">Crop Management</a></li>
-        <li><a href="#yield-data" onclick="showTab('yield-data')">Yield Data</a></li>
-        <li><a href="#financial-data" onclick="showTab('financial-data')">Financial Data</a></li>
+        <li><a href="#crop-details" onclick="showMainTab('crop-details')">Crop Details</a></li>
+        <li><a href="#crop-management" onclick="showMainTab('crop-management')">Crop Management</a></li>
+        <li><a href="#yield-data" onclick="showMainTab('yield-data')">Yield Data</a></li>
+        <li><a href="#financial-data" onclick="showMainTab('financial-data')">Financial Data</a></li>
     </ul>
     <div class="tab-content">
       <div id="crop-details" class="tab-pane">
@@ -54,15 +54,15 @@
       <div id="crop-management" class="tab-pane">
                 <h2>Crop Management Records</h2>
         
-                <ul class="tabs">
-                  <li><a href="#Fertilizer" onclick="showTab('fertilizer-info')">Fertilizer Information</a></li>
-                  <li><a href="#Irrigation" onclick="showTab('irrigation-info')">Irrigation Information</a></li>
-                  <li><a href="#Pest-Control" onclick="showTab('pest-info')">Pest Control Information</a></li>
-                  <li><a href="#Weeding" onclick="showTab('weeding-info')">Weeding Information</a></li>
-                  <li><a href="#Labour" onclick="showTab('labour-info')">Labour Information</a></li>
+                <ul class="sub-tabs">
+                  <li><a href="#fertilizer-info" onclick="showSubTab('fertilizer-info')">Fertilizer Information</a></li>
+                  <li><a href="#irrigation-info" onclick="showSubTab('irrigation-info')">Irrigation Information</a></li>
+                  <li><a href="#pest-info" onclick="showSubTab('pest-info')">Pest Control Information</a></li>
+                  <li><a href="#weeding-info" onclick="showSubTab('weeding-info')">Weeding Information</a></li>
+                  <li><a href="#labour-info" onclick="showSubTab('labour-info')">Labour Information</a></li>
               </ul>
         
-              <div id="fertilizer-info" class="tab-pane">
+              <div id="fertilizer-info" class="subtab-pane">
                 {% if crop_management_records %}
                 
                   <h3>Fertilizer Information</h3>
@@ -89,7 +89,7 @@
                 {% endif %}
               </div>
               
-              <div id="irrigation-info" class="tab-pane">
+              <div id="irrigation-info" class="subtab-pane">
                 {% if crop_management_records %}
                 
                   <h3>Irrigation Information</h3>
@@ -116,7 +116,7 @@
                 {% endif %}
               </div>
               
-              <div id="pest-info" class="tab-pane">
+              <div id="pest-info" class="subtab-pane">
                 {% if crop_management_records %}
                 
                   <h3>Pest Control Information</h3>
@@ -143,7 +143,7 @@
                 {% endif %}
               </div>
               
-              <div id="weeding-info" class="tab-pane">
+              <div id="weeding-info" class="subtab-pane">
                 {% if crop_management_records %}
                 
                   <h3>Weeding Information</h3>
@@ -168,7 +168,7 @@
                 {% endif %}
               </div>
         
-        <div id="labour-info" class="tab-pane">
+        <div id="labour-info" class="subtab-pane">
                 {% if crop_management_records %}
                 
                   <h3>Labour Information</h3>

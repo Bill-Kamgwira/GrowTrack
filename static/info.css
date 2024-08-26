@@ -6,6 +6,14 @@
   display: block; /* Show the active tab content */
 }
 
+.subtab-pane {
+  display: none; /* Initially hide all tab contents */
+}
+
+.subtab-pane.active {
+  display: block; /* Show the active tab content */
+}
+
 .export-button {
   background-color: #4CAF50;
   color: white;
@@ -31,6 +39,18 @@ h3 a {
 }
 
 .tabs li {
+  margin-right: 10px; /* Add spacing between tabs */
+}
+
+.sub-tabs {
+  display: flex; /* Arrange tabs horizontally */
+  list-style: none; /* Remove default list styling */
+  padding: 0;
+  margin: 10;
+  border-bottom: none; /* Add border to separate tabs */
+}
+
+.sub-tabs li {
   margin-right: 10px; /* Add spacing between tabs */
 }
 
@@ -67,6 +87,24 @@ h3 a {
   border-bottom: 2px solid #fff;
 }
 
+.sub-tabs li a {
+  color: black;
+  padding: 12px 20px; /* Adjust padding for tabs */
+  text-decoration: none;
+  border-radius: 5px;
+  box-shadow: 0 2px 3px rgba(0, 0, 0, 0.1); /* Add a subtle shadow */
+  background-color: #4CAF50; /* Match the button color */
+  color: white; /* Match the button text color */
+  border-radius: 5px;
+  font-weight: bold;
+}
+
+.sub-tabs .active  {
+  /* Styles for the active tab */
+  background-color: #3e8e41;
+  font-weight: bold;
+  border-bottom: 2px solid #fff;
+}
 
 table {
   width: 100%;

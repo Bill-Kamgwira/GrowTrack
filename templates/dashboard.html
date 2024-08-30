@@ -6,6 +6,9 @@
     <link rel="stylesheet" href="/static/base.css">
     <link rel="stylesheet" href="/static/dashboard.css">
     <link rel="stylesheet" href="/static/navigation.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bokeh/3.5.2/bokeh.min.js"></script>
+</head>
+    
 </head>
 <body>
     <div class="dashboard-container">
@@ -20,8 +23,19 @@
               </ul>
           </nav>
         <div class="content">
+
+            <div id="chart-container">
+                
+
+                {{ div | safe }} 
+                {{ script | safe }}
+                
+
+            </div>
+
             </div>
         
     </div>
+    
 </body>
 </html>

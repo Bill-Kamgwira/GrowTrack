@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect, url_for, flash, make_response, jsonify
+from flask import Flask, render_template, request, redirect, url_for, flash
 from flask_login import LoginManager, login_user, login_required, logout_user, current_user
 from werkzeug.security import generate_password_hash, check_password_hash
 import re
@@ -7,8 +7,11 @@ from models import User, Crop, CropManagement, YieldData, FinancialData
 import secrets
 from datetime import datetime
 from flask_migrate import Migrate
-import io
 from flask_csv import send_csv
+from bokeh.embed import components
+from bokeh.plotting import figure
+
+
 
 
 
@@ -158,7 +161,40 @@ def logout():
 @app.route('/dashboard')
 @login_required
 def dashboard():
-    return render_template('dashboard.html')
+
+    joined_data = db.session.query(Crop, YieldData).join(YieldData).all()
+
+    data = []
+    for crop, yield_data in joined_data:
+        duration = yield_data.harvest_date - crop.planting_date
+        data.append({'crop_name': crop.name, 'duration': duration.days})
+    
+    print(data)
+
+    #source = ColumnDataSource(data={
+    #'crop_name': [item['crop_name'] for item in data],
+    #'duration': [item['duration'] for item in data]
+    #})
+
+    crop_names = [item['crop_name'] for item in data]
+    durations = [item['duration'] for item in data]
+
+    p = figure(
+    x_range= crop_names, 
+    #y_range= durations,
+    height=400, 
+    title='Time to Harvest'
+    )
+
+    p.vbar(x=crop_names, top=durations , width=0.5)
+    p.xgrid.grid_line_color = None
+    p.y_range.start = 0
+
+  
+    # Get Chart Components 
+    script, div = components(p) 
+    
+    return render_template('dashboard.html', script=script, div=div)
 
 # Route for User to view profile
 @app.route('/profile')

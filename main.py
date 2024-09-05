@@ -10,6 +10,9 @@ from flask_migrate import Migrate
 from flask_csv import send_csv
 from bokeh.embed import components
 from bokeh.plotting import figure
+from datetime import datetime, date
+from collections import defaultdict
+from bokeh.models import DatetimeTickFormatter, ColumnDataSource, DataRange1d
 
 
 
@@ -164,37 +167,87 @@ def dashboard():
 
     joined_data = db.session.query(Crop, YieldData).join(YieldData).all()
 
-    data = []
+    # Aggregate data by crop name
+    aggregated_data = defaultdict(list)
     for crop, yield_data in joined_data:
         duration = yield_data.harvest_date - crop.planting_date
-        data.append({'crop_name': crop.name, 'duration': duration.days})
-    
-    print(data)
+        aggregated_data[crop.name].append(duration.days)  # Use crop.name for key
 
-    #source = ColumnDataSource(data={
-    #'crop_name': [item['crop_name'] for item in data],
-    #'duration': [item['duration'] for item in data]
-    #})
+    # Calculate total duration for each crop
+    crop_names = list(aggregated_data.keys())
+    durations = [sum(values) for values in aggregated_data.values()]
 
-    crop_names = [item['crop_name'] for item in data]
-    durations = [item['duration'] for item in data]
-
+    # Create bar chart for time to harvest
     p = figure(
-    x_range= crop_names, 
-    #y_range= durations,
-    height=400, 
-    title='Time to Harvest'
+        x_range=crop_names,
+        height=400, 
+        title='Time to Harvest'
     )
-
-    p.vbar(x=crop_names, top=durations , width=0.5)
+    p.vbar(x=crop_names, top=durations, width=0.5)
     p.xgrid.grid_line_color = None
     p.y_range.start = 0
 
-  
-    # Get Chart Components 
-    script, div = components(p) 
-    
-    return render_template('dashboard.html', script=script, div=div)
+    # Prepare Yield Over Time data
+    YOTdata = []
+    for crop, yield_data in joined_data:
+        hardate = yield_data.harvest_date
+        harquan = yield_data.quantity
+        YOTdata.append({'crop_name': crop.name, 'harvest_date': hardate, 'quantity': harquan})
+
+    # Extracting data
+    yhardate = [item['harvest_date'] for item in YOTdata]
+    yharquan = [item['quantity'] for item in YOTdata]
+
+    # Ensure dates are datetime objects
+    yhardate = [
+        datetime.combine(date_obj, datetime.min.time()) 
+        if isinstance(date_obj, date) and not isinstance(date_obj, datetime) 
+        else date_obj 
+        for date_obj in yhardate
+    ]
+
+    # Create ColumnDataSource
+    source = ColumnDataSource(data=dict(harvest_date=yhardate, quantity=yharquan))
+
+    # Create figure for Yield Over Time
+    p_yield = figure(
+        x_axis_label='Harvest Date',
+        y_axis_label='Yield Quantity',
+        title='Yield Over Time',
+        x_axis_type='datetime'
+    )
+
+    # Add the circle glyph to the plot
+    p_yield.circle(x='harvest_date', y='quantity', source=source, size=10, color='blue')
+
+
+    # Set specific y-axis range
+    if yharquan:
+        p_yield.y_range = DataRange1d(start=min(yharquan), end=max(yharquan) + 10)
+    else:
+        p_yield.y_range = DataRange1d(start=0, end=10)
+
+    # Ensure yhardate contains valid datetime objects
+    if yhardate:
+        p_yield.x_range = DataRange1d(start=min(yhardate), end=max(yhardate))
+    else:
+        # Default date range
+        p_yield.x_range = DataRange1d(start=datetime(2024, 8, 7), end=datetime(2024, 9, 3))
+
+    # Format x-axis
+    p_yield.xaxis.formatter = DatetimeTickFormatter(
+        days="%d %B %Y",
+        months="%B %Y",
+        years="%Y"
+    )
+
+    # Generate components
+    yscript, ydiv = components(p_yield)
+
+    # Get chart components for the bar chart
+    script, div = components(p)
+
+    return render_template('dashboard.html', script=script, div=div, yscript=yscript, ydiv=ydiv)
 
 # Route for User to view profile
 @app.route('/profile')

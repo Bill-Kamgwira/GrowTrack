@@ -29,8 +29,10 @@ nav a {
 }
 
 .content {
-    flex-grow: 1; /* Makes the content area take up available space */
-    padding: 20px;
+    display: grid;
+    grid-template-columns: 1fr 1fr; /* Adjust column widths as needed */
+    gap: 20px; /* Add spacing between divs */
+
 }
 
 nav ul li a {

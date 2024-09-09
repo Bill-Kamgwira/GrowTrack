@@ -298,6 +298,33 @@ def dashboard():
     p_irrigation.x_range = DataRange1d(start=min(irrigation_dates), end=max(irrigation_dates))
     p_irrigation.y_range = DataRange1d(start=min(irrigation_amounts), end=max(irrigation_amounts) + 10)
 
+    # Fetch fertilizer and yield data from the database
+    data = db.session.query(CropManagement, YieldData).join(YieldData, CropManagement.crop_id == YieldData.crop_id).all()
+
+    # Prepare lists for fertilizer amount and yield quantity
+    fertilizer_amounts = []
+    yield_quantities = []
+
+    for record in data:
+        if record.CropManagement.fertilizer_amount and record.YieldData.quantity:
+            fertilizer_amounts.append(record.CropManagement.fertilizer_amount)
+            yield_quantities.append(record.YieldData.quantity)
+
+    # Create ColumnDataSource
+    source = ColumnDataSource(data=dict(fertilizer=fertilizer_amounts, yield_qty=yield_quantities))
+
+    # Create scatter plot figure
+    p_scatter = figure(title='Fertilizer Amount vs Yield Quantity', x_axis_label='Fertilizer Amount', y_axis_label='Yield Quantity', height=400, width=800)
+
+    # Add scatter plot points
+    p_scatter.scatter(x='fertilizer', y='yield_qty', source=source, size=10, color='navy', alpha=0.6)
+
+    # Add a line of best fit if needed (Optional)
+    p_scatter.line(x='fertilizer', y='yield_qty', source=source, line_width=2, color='red')
+
+    # Generate components for embedding the chart
+    scatter_script, scatter_div = components(p_scatter)
+
     # Generate components for both charts
     fert_script, fert_div = components(p_fertilizer)
     irr_script, irr_div = components(p_irrigation)
@@ -309,7 +336,8 @@ def dashboard():
     script, div = components(p)
 
     return render_template('dashboard.html', script=script, div=div, yscript=yscript, ydiv=ydiv, fert_script = fert_script, 
-                           fert_div = fert_div, irr_script = irr_script, irr_div = irr_div )
+                           fert_div = fert_div, irr_script = irr_script, irr_div = irr_div, scatter_script= scatter_script, 
+                            scatter_div = scatter_div )
 
 # Route for User to view profile
 @app.route('/profile')

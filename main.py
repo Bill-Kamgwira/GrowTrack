@@ -241,13 +241,75 @@ def dashboard():
         years="%Y"
     )
 
+
+    # Fetch resource usage data (Fertilizer & Irrigation) from the database
+    resource_data = db.session.query(CropManagement).all()
+
+    # Separate data for fertilizer and irrigation
+    fertilizer_data = []
+    irrigation_data = []
+    for record in resource_data:
+        if record.fertilizer_date and record.fertilizer_amount:
+            fertilizer_data.append({'date': record.fertilizer_date, 'amount': record.fertilizer_amount})
+        if record.irrigation_date and record.irrigation_amount:
+            irrigation_data.append({'date': record.irrigation_date, 'amount': record.irrigation_amount})
+
+    # Ensure dates are converted to datetime.datetime objects
+    def ensure_datetime(date_obj):
+        if isinstance(date_obj, datetime):
+            return date_obj
+        elif isinstance(date_obj, date):  # Convert date to datetime
+            return datetime.combine(date_obj, datetime.min.time())
+        elif isinstance(date_obj, str):  # In case any dates are strings
+            return datetime.strptime(date_obj, "%Y-%m-%d")
+        return date_obj
+
+    # Convert fertilizer and irrigation dates to datetime.datetime objects
+    fertilizer_dates = [ensure_datetime(item['date']) for item in fertilizer_data]
+    irrigation_dates = [ensure_datetime(item['date']) for item in irrigation_data]
+
+    # Prepare amounts
+    fertilizer_amounts = [item['amount'] for item in fertilizer_data]
+    irrigation_amounts = [item['amount'] for item in irrigation_data]
+
+    # Now use these converted dates for the plot
+    fertilizer_source = ColumnDataSource(data=dict(date=fertilizer_dates, amount=fertilizer_amounts))
+    irrigation_source = ColumnDataSource(data=dict(date=irrigation_dates, amount=irrigation_amounts))
+
+    # Create figure for fertilizer usage
+    p_fertilizer = figure(x_axis_type='datetime', title='Fertilizer Usage Over Time', height=400, width=800)
+    p_fertilizer.line(x='date', y='amount', source=fertilizer_source, line_width=2, color='green', legend_label="Fertilizer")
+    p_fertilizer.xaxis.formatter = DatetimeTickFormatter(days="%d %B %Y", months="%B %Y", years="%Y")
+    p_fertilizer.yaxis.axis_label = 'Fertilizer Amount'
+    p_fertilizer.xaxis.axis_label = 'Date'
+
+    # Set x and y ranges manually for the fertilizer plot
+    p_fertilizer.x_range = DataRange1d(start=min(fertilizer_dates), end=max(fertilizer_dates))
+    p_fertilizer.y_range = DataRange1d(start=min(fertilizer_amounts), end=max(fertilizer_amounts) + 10)
+
+    # Create figure for irrigation usage
+    p_irrigation = figure(x_axis_type='datetime', title='Irrigation Usage Over Time', height=400, width=800)
+    p_irrigation.line(x='date', y='amount', source=irrigation_source, line_width=2, color='blue', legend_label="Irrigation")
+    p_irrigation.xaxis.formatter = DatetimeTickFormatter(days="%d %B %Y", months="%B %Y", years="%Y")
+    p_irrigation.yaxis.axis_label = 'Irrigation Amount'
+    p_irrigation.xaxis.axis_label = 'Date'
+
+    # Set x and y ranges manually for the irrigation plot
+    p_irrigation.x_range = DataRange1d(start=min(irrigation_dates), end=max(irrigation_dates))
+    p_irrigation.y_range = DataRange1d(start=min(irrigation_amounts), end=max(irrigation_amounts) + 10)
+
+    # Generate components for both charts
+    fert_script, fert_div = components(p_fertilizer)
+    irr_script, irr_div = components(p_irrigation)
+
     # Generate components
     yscript, ydiv = components(p_yield)
 
     # Get chart components for the bar chart
     script, div = components(p)
 
-    return render_template('dashboard.html', script=script, div=div, yscript=yscript, ydiv=ydiv)
+    return render_template('dashboard.html', script=script, div=div, yscript=yscript, ydiv=ydiv, fert_script = fert_script, 
+                           fert_div = fert_div, irr_script = irr_script, irr_div = irr_div )
 
 # Route for User to view profile
 @app.route('/profile')

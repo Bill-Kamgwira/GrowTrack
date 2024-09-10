@@ -60,11 +60,40 @@
 
             </div>
 
-            <div id="chart-container"></div>
+            <div id="chart-container">
                 
 
                 {{ scatter_div | safe }} 
                 {{ scatter_script | safe }}
+                
+
+            </div>
+
+            <div id="chart-container">
+                
+
+                {{ scatter_irr_div | safe }} 
+                {{ scatter_irr_script | safe }}
+                
+
+            </div>
+
+            <div id="chart-container">
+                
+
+            <form method="POST" action="{{ url_for('dashboard') }}">
+                <label for="crop-select">Select Crop for Financial Breakdown:</label>
+                <select name="crop_id" id="crop-select">
+                    {% for crop in crops %}
+                    <option value="{{ crop.id }}">{{ crop.name }}</option>
+                    {% endfor %}
+                </select>
+                <button type="submit">View Breakdown</button>
+            </form>
+            
+            <!-- Include the pie chart -->
+            {{ pie_div|safe }}
+            {{ pie_script|safe }}
                 
 
             </div>

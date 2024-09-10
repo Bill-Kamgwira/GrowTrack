@@ -13,6 +13,8 @@ from bokeh.plotting import figure
 from datetime import datetime, date
 from collections import defaultdict
 from bokeh.models import DatetimeTickFormatter, ColumnDataSource, DataRange1d
+from math import pi
+from bokeh.transform import cumsum
 
 
 
@@ -161,7 +163,7 @@ def logout():
     return redirect(url_for('login'))
 
 # Dashboard Route
-@app.route('/dashboard')
+@app.route('/dashboard', methods=['GET', 'POST'])
 @login_required
 def dashboard():
 
@@ -322,6 +324,87 @@ def dashboard():
     # Add a line of best fit if needed (Optional)
     p_scatter.line(x='fertilizer', y='yield_qty', source=source, line_width=2, color='red')
 
+    # Fetch irrigation and yield data from the database
+    datair = db.session.query(CropManagement, YieldData).join(YieldData, CropManagement.crop_id == YieldData.crop_id).all()
+
+    # Prepare lists for irrigation amount and yield quantity
+    irrigation_amounts = []
+    yield_quantities = []
+
+    for record in datair:
+        if record.CropManagement.irrigation_amount and record.YieldData.quantity:
+            irrigation_amounts.append(record.CropManagement.irrigation_amount)
+            yield_quantities.append(record.YieldData.quantity)
+
+    # Create ColumnDataSource
+    source = ColumnDataSource(data=dict(irrigation=irrigation_amounts, yield_qty=yield_quantities))
+
+    # Create scatter plot figure for Irrigation vs Yield
+    p_scatter_irr = figure(title='Irrigation Amount vs Yield Quantity', 
+                        x_axis_label='Irrigation Amount', 
+                        y_axis_label='Yield Quantity', 
+                        height=400, width=800)
+
+    # Add scatter plot points
+    p_scatter_irr.scatter(x='irrigation', y='yield_qty', source=source, size=10, color='blue', alpha=0.6)
+
+    # Add a line of best fit if needed (Optional)
+    p_scatter_irr.line(x='irrigation', y='yield_qty', source=source, line_width=2, color='green')
+
+  
+
+    # Get the list of crops specific to the logged-in user
+    user_crops = db.session.query(Crop).filter(Crop.user_id == current_user.id).all()
+
+    # Default crop_id to display initially (could be the first crop or a specific crop)
+    selected_crop_id = user_crops[0].id if user_crops else None  # Default to the first crop for this user, if available
+
+    # If a crop is selected through the form, update the selected_crop_id
+    if request.method == 'POST':
+        selected_crop_id = int(request.form.get('crop_id'))
+
+    # Fetch financial data for the selected crop by joining with Crop (to access user_id)
+    if selected_crop_id:
+        financial_data = db.session.query(FinancialData).join(Crop).filter(
+            FinancialData.crop_id == selected_crop_id,
+            Crop.user_id == current_user.id  # Ensure it belongs to the current user
+        ).first()
+    else:
+        financial_data = None
+
+    # Prepare data for the pie chart
+    if financial_data:
+        seed_cost = financial_data.seed_cost or 0
+        fertilizer_cost = financial_data.fertilizer_cost or 0
+        labor_cost = financial_data.labor_cost or 0
+        equipment_cost = financial_data.equipment_cost or 0
+        pesticide_cost = financial_data.pesticide_cost or 0
+
+        total_cost = seed_cost + fertilizer_cost + labor_cost + equipment_cost + pesticide_cost
+        cost_data = {
+            'category': ['Seed Cost', 'Fertilizer Cost', 'Labor Cost', 'Equipment Cost', 'Pesticide Cost'],
+            'value': [seed_cost, fertilizer_cost, labor_cost, equipment_cost, pesticide_cost]
+        }
+
+        cost_data['angle'] = [v / total_cost * 2 * pi for v in cost_data['value']]
+        cost_data['color'] = ['#fdae61', '#d73027', '#1a9850', '#91bfdb', '#fee08b']
+
+        source = ColumnDataSource(data=cost_data)
+
+        p_pie = figure(height=400, width=400, title=f"Cost Breakdown for {financial_data.crop.name}", toolbar_location=None, tools="hover", tooltips="@category: @value", x_range=(-0.5, 1))
+        p_pie.wedge(x=0, y=1, radius=0.4, start_angle=cumsum('angle', include_zero=True), end_angle=cumsum('angle'), line_color="white", fill_color='color', legend_field='category', source=source)
+
+        p_pie.axis.visible = False
+        p_pie.grid.visible = False
+        p_pie.legend.location = "top_left"
+    else:
+        p_pie = figure(height=400, width=400, title="No Financial Data Available for Selected Crop")
+
+    pie_script, pie_div = components(p_pie)
+
+    # Generate components for embedding the chart
+    scatter_irr_script, scatter_irr_div = components(p_scatter_irr)
+
     # Generate components for embedding the chart
     scatter_script, scatter_div = components(p_scatter)
 
@@ -337,7 +420,8 @@ def dashboard():
 
     return render_template('dashboard.html', script=script, div=div, yscript=yscript, ydiv=ydiv, fert_script = fert_script, 
                            fert_div = fert_div, irr_script = irr_script, irr_div = irr_div, scatter_script= scatter_script, 
-                            scatter_div = scatter_div )
+                            scatter_div = scatter_div, scatter_irr_script = scatter_irr_script, scatter_irr_div = scatter_irr_div,
+                            pie_script = pie_script, pie_div = pie_div, crops = user_crops)
 
 # Route for User to view profile
 @app.route('/profile')

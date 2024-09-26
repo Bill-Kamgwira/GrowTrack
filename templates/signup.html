@@ -4,57 +4,136 @@
   <title>Signup</title>
   <link rel="shortcut icon" href="/static/favicon.ico">
   <link rel="stylesheet" href="/static/signup.css">
+  <style>
+    /* Style for the password strength meter */
+    #password-strength {
+      width: 100%;
+      height: 10px;
+      background-color: #ddd;
+    }
+
+    .strength-bar {
+      height: 100%;
+      width: 0%;
+      transition: width 0.3s ease;
+    }
+
+    .weak {
+      background-color: red;
+    }
+
+    .medium {
+      background-color: orange;
+    }
+
+    .strong {
+      background-color: green;
+    }
+  </style>
 </head>
 <body>
   <div class="registration-form">
-  <h1>GrowTrack Registration</h1>
+    <h1>GrowTrack Registration</h1>
 
-  {% if errors %}
-      <ul class="error-messages">
-          {% for error in errors %}
-              <li>{{ error }}</li>
-          {% endfor %}
-      </ul>
-  {% endif %}
+    {% if errors %}
+        <ul class="error-messages">
+            {% for error in errors %}
+                <li>{{ error }}</li>
+            {% endfor %}
+        </ul>
+    {% endif %}
 
-  <form method="POST" action="/signup">
-    <label for="username">Username:</label>
-    <input type="text" name="username" id="username" required>
-    <br>
-    <label for="password">Password:</label>
-    <input type="password" name="password" id="password" required minlength="8" 
-       pattern="(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}">
-    <div class="password-info">
-      <ul>
-        <li class="info-item">Minimum 8 characters</li>
-        <li class="info-item">At least one uppercase letter (A-Z)</li>
-        <li class="info-item">At least one lowercase letter (a-z)</li>
-        <li class="info-item">At least one number (0-9)</li>
-        <li class="info-item">At least one special character (@$!%*?&)</li>
-    </ul>
-    </div>
-    <br>
-    <label for="confirm_password">Confirm Password:</label>
-        <input type="password" name="confirm_password" id="confirm_password" required>
-    <br>
-    <label for="email">Email:</label>
-    <input type="email" name="email" id="email" required pattern="[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{1,}">
-    <br>
-    <label for="farm_name">Farm Name:</label>
-    <input type="text" name="farm_name" id="farm_name" required>
-    <br>
-    <label for="region">Region:</label>
-    <input type="text" name="region" id="region" required>
-    <br>
-    <label for="traditional_authority">Traditional Authority:</label>
-    <input type="text" name="traditional_authority" id="traditional_authority" required>
-    <br>
-    <label for="farm_size">Farm Size (Hectares):</label>
-    <input type="number" name="farm_size" id="farm_size" required>
-    <br>
-    <button type="submit">Register</button>
-  </form>
-</div>
+    <form method="POST" action="/signup">
+      <label for="username">Username:</label>
+      <input type="text" name="username" id="username" required>
+      <br>
+      <label for="password">Password:</label>
+      <input type="password" name="password" id="password" required minlength="8" 
+         pattern="(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}">
+      <div id="password-strength">
+        <div id="strength-bar" class="strength-bar"></div>
+      </div>
+      <div class="password-info">
+        <ul>
+          <li class="info-item">Minimum 8 characters</li>
+          <li class="info-item">At least one uppercase letter (A-Z)</li>
+          <li class="info-item">At least one lowercase letter (a-z)</li>
+          <li class="info-item">At least one number (0-9)</li>
+          <li class="info-item">At least one special character (@$!%*?&)</li>
+        </ul>
+      </div>
+      <br>
+      <label for="confirm_password">Confirm Password:</label>
+      <input type="password" name="confirm_password" id="confirm_password" required>
+      <br>
+      <label for="email">Email:</label>
+      <input type="email" name="email" id="email" required pattern="[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{1,}">
+      <br>
+      <label for="farm_name">Farm Name:</label>
+      <input type="text" name="farm_name" id="farm_name" required>
+      <br>
+      <label for="region">Region:</label>
+      <input type="text" name="region" id="region" required>
+      <br>
+      <label for="traditional_authority">Traditional Authority:</label>
+      <input type="text" name="traditional_authority" id="traditional_authority" required>
+      <br>
+      <label for="farm_size">Farm Size (Hectares):</label>
+      <input type="number" name="farm_size" id="farm_size" required>
+      <br>
+      <br>
+      <button type="submit">Register</button>
+    </form>
+
+    <p>Already Registered? <a href="/login">Log In</a></p>
+
+  </div>
+
+  <script>
+    const passwordInput = document.getElementById('password');
+    const strengthBar = document.getElementById('strength-bar');
+
+    passwordInput.addEventListener('input', function() {
+      const password = passwordInput.value;
+      let strength = calculatePasswordStrength(password);
+
+      // Update the strength bar based on the password strength
+      strengthBar.style.width = strength + '%';
+
+      if (strength < 40) {
+        strengthBar.className = 'strength-bar weak';
+      } else if (strength < 80) {
+        strengthBar.className = 'strength-bar medium';
+      } else {
+        strengthBar.className = 'strength-bar strong';
+      }
+    });
+
+    function calculatePasswordStrength(password) {
+      let strength = 0;
+
+      if (password.length >= 8) {
+        strength += 20;
+      }
+
+      if (/[a-z]/.test(password)) {
+        strength += 20;
+      }
+
+      if (/[A-Z]/.test(password)) {
+        strength += 20;
+      }
+
+      if (/[0-9]/.test(password)) {
+        strength += 20;
+      }
+
+      if (/[@$!%*?&]/.test(password)) {
+        strength += 20;
+      }
+
+      return strength;
+    }
+  </script>
 </body>
 </html>
-

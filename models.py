@@ -1,8 +1,12 @@
-# SQLAlchemy Instance Is Imported
 from supdb import db
 from flask_login import UserMixin
+from datetime import datetime
 
-class User(db.Model, UserMixin):
+class TimestampMixin:
+    created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
+
+class User(db.Model, UserMixin, TimestampMixin):
     __tablename__ = "users1"
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(80), unique=True, nullable=False)
@@ -15,7 +19,8 @@ class User(db.Model, UserMixin):
     first_name = db.Column(db.String(120), nullable=True)
     last_name = db.Column(db.String(120), nullable=True)
     crops = db.relationship('Crop', back_populates='user')
-    
+    failed_attempts = db.Column(db.Integer, default=0, nullable=False)
+    last_failed_attempt = db.Column(db.DateTime, nullable=True)
     def get_id(self):
         return self.id
 
@@ -28,65 +33,61 @@ class User(db.Model, UserMixin):
     def is_authenticated(self):
         return True
 
-class Crop(db.Model):
+class Crop(db.Model, TimestampMixin):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100), nullable=False)
-    planting_date = db.Column(db.Date)
-    expected_harvest_date = db.Column(db.Date)
     crop_variety = db.Column(db.String(100))
     acreage = db.Column(db.Float)
-    crop_rotation_history = db.Column(db.Text)  # Store as text for flexibility
-    user_id = db.Column(db.Integer, db.ForeignKey('users1.id'))
+    user_id = db.Column(db.Integer, db.ForeignKey('users1.id', name='fk_crop_user_id'))  # Named constraint
     user = db.relationship('User', back_populates='crops')
-    crop_management_records = db.relationship('CropManagement', back_populates='crop')
-    yield_data = db.relationship('YieldData', back_populates='crop')
-    financial_data = db.relationship('FinancialData', back_populates='crop')  # One-to-one relationship
+    cycles = db.relationship('CropCycle', back_populates='crop')  # Link to CropCycle
 
-class CropManagement(db.Model):
+class CropCycle(db.Model, TimestampMixin):
+    __tablename__ = 'cropcycle'  # Ensures that the table name is exactly 'cropcycle'
     id = db.Column(db.Integer, primary_key=True)
-    crop_id = db.Column(db.Integer, db.ForeignKey('crop.id'))
-     # Specific fields for different management types
-     #Specific data for fertilization
+    crop_id = db.Column(db.Integer, db.ForeignKey('crop.id', name='fk_cropcycle_crop_id'))  # Named constraint
+    crop = db.relationship('Crop', back_populates='cycles')
+    cycle_name = db.Column(db.String(100))  # Optional name for each cycle
+    planting_dates = db.Column(db.Text)  # Storing multiple dates as text (could be JSON format)
+    harvest_dates = db.Column(db.Text)  # Storing multiple harvest dates
+    crop_management_records = db.relationship('CropManagement', back_populates='cycle')
+    yield_data = db.relationship('YieldData', back_populates='cycle')
+    financial_data = db.relationship('FinancialData', back_populates='cycle')
+
+class CropManagement(db.Model, TimestampMixin):
+    id = db.Column(db.Integer, primary_key=True)
+    crop_cycle_id = db.Column(db.Integer, db.ForeignKey('cropcycle.id', name='fk_cropmanagement_crop_cycle_id'))  # Named constraint
+    cycle = db.relationship('CropCycle', back_populates='crop_management_records')
     fertilizer_type = db.Column(db.String(50))
     fertilizer_amount = db.Column(db.Float)
     fertilizer_date = db.Column(db.Date)
-    #Specific data for irrigation
     irrigation_type = db.Column(db.String(50))
     irrigation_amount = db.Column(db.Float)
     irrigation_date = db.Column(db.Date)
-    # Specifc data for Pest & Disease Control
     control_type = db.Column(db.String(50))
     control_amount = db.Column(db.Float)
     control_date = db.Column(db.Date)
-    # Specific data for Weeding practices
     weeding_method = db.Column(db.String(50))
     weeding_date = db.Column(db.Date)
-    # Specific data for Labour inputs
     tasks_completed = db.Column(db.String(200))
     hours_accrued = db.Column(db.Float)
     labour_date = db.Column(db.Date)
-    
-    crop = db.relationship('Crop')
 
-class YieldData(db.Model):
+class YieldData(db.Model, TimestampMixin):
     id = db.Column(db.Integer, primary_key=True)
-    crop_id = db.Column(db.Integer, db.ForeignKey('crop.id'))
+    crop_cycle_id = db.Column(db.Integer, db.ForeignKey('cropcycle.id', name='fk_yielddata_crop_cycle_id'))  # Named constraint
+    cycle = db.relationship('CropCycle', back_populates='yield_data')
     quantity = db.Column(db.Float)
     quality = db.Column(db.String(50))
-    harvest_date = db.Column(db.Date)
-    post_harvest_loss = db.Column(db.Float)
-    factors_affecting_yield = db.Column(db.Text)
+    harvest_dates = db.Column(db.Text)  # Multiple harvest events
 
-    crop = db.relationship('Crop')
-
-class FinancialData(db.Model):
+class FinancialData(db.Model, TimestampMixin):
     id = db.Column(db.Integer, primary_key=True)
-    crop_id = db.Column(db.Integer, db.ForeignKey('crop.id'), unique=True)  # One-to-one relationship
+    crop_cycle_id = db.Column(db.Integer, db.ForeignKey('cropcycle.id', name='fk_financialdata_crop_cycle_id'))  # Named constraint
+    cycle = db.relationship('CropCycle', back_populates='financial_data')
     seed_cost = db.Column(db.Float)
     fertilizer_cost = db.Column(db.Float)
     labor_cost = db.Column(db.Float)
     equipment_cost = db.Column(db.Float)
     pesticide_cost = db.Column(db.Float)
     revenue = db.Column(db.Float)
-    crop = db.relationship('Crop')
-

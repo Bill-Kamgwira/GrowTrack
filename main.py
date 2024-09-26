@@ -1,16 +1,16 @@
-from flask import Flask, render_template, request, redirect, url_for, flash
+from flask import Flask, render_template, request, redirect, url_for, flash, session
 from flask_login import LoginManager, login_user, login_required, logout_user, current_user
 from werkzeug.security import generate_password_hash, check_password_hash
 import re
 from supdb import db
-from models import User, Crop, CropManagement, YieldData, FinancialData
+from models import User, Crop, CropManagement, YieldData, FinancialData, CropCycle
 import secrets
 from datetime import datetime
 from flask_migrate import Migrate
 from flask_csv import send_csv
 from bokeh.embed import components
 from bokeh.plotting import figure
-from datetime import datetime, date
+from datetime import datetime, date, timedelta
 from collections import defaultdict
 from bokeh.models import DatetimeTickFormatter, ColumnDataSource, DataRange1d
 from math import pi
@@ -20,7 +20,12 @@ from bokeh.transform import cumsum
 
 
 
+
+
 app = Flask(__name__, static_url_path='/static')
+
+
+app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(minutes=30)  
 
 # Database configuration
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///Users.db'  
@@ -69,6 +74,16 @@ def signup():
 
         errors = []  # List to store any validation errors
 
+        # Check if username already exists
+        existing_user_by_username = User.query.filter_by(username=username).first()
+        if existing_user_by_username:
+            errors.append(f"Username '{username}' is already taken.")
+
+        # Check if email already exists
+        existing_user_by_email = User.query.filter_by(email=email).first()
+        if existing_user_by_email:
+            errors.append(f"An account with the email '{email}' already exists.")
+
         # Username validation
         if not username:
             errors.append("Username cannot be empty.")
@@ -86,7 +101,7 @@ def signup():
             if not complexity_requirements_met:
                 errors.append("Password must contain at least one uppercase letter, one lowercase letter, one number, and one symbol.")
         
-        #Confirm Password Validation
+        # Confirm Password Validation
         if password != confirm_password:
             errors.append("Passwords do not match.")
 
@@ -99,7 +114,7 @@ def signup():
         if not farm_name:
             errors.append("Farm name cannot be empty.")
 
-        # Region and traditional authority validation (assuming separate inputs)
+        # Region and traditional authority validation
         if not region:
             errors.append("Region cannot be empty.")
         if not traditional_authority:
@@ -126,8 +141,9 @@ def signup():
             return redirect(url_for('login'))
 
 
+
 @app.route('/view_users') #To view Contents of the Database
-def view_users():
+def view_users(): 
     users = User.query.all()  # Query all users
     return render_template('users.html', users=users)
 
@@ -136,23 +152,45 @@ def view_users():
 def load_user(user_id):
     return User.query.get(int(user_id))
 
-#Login Route
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if current_user.is_authenticated:
         return redirect(url_for('dashboard'))
+    
     if request.method == 'POST':
         email = request.form['email']
         password = request.form['password']
         user = User.query.filter_by(email=email).first()
-        if user and check_password_hash(user.password_hash, password):
-            login_user(user)
-            return redirect(url_for('dashboard'))
-        else:
-            if not user:
-                flash('Login Failed! Invalid email or password.', 'error')
+        
+        if user:
+            # Check if the account is locked
+            if user.failed_attempts >= 5:
+                # Cooldown of 15 minutes before allowing another login attempt
+                cooldown_time = timedelta(minutes=15)
+                if datetime.utcnow() - user.last_failed_attempt < cooldown_time:
+                    flash('Account locked due to too many failed login attempts. Try again later.', 'error')
+                    return render_template('login.html')
+
+            # Check the password
+            if check_password_hash(user.password_hash, password):
+                # Reset failed login attempts after successful login
+                user.failed_attempts = 0
+                db.session.commit()
+
+                #Mark session as permanent to activate timeout
+                session.permanent = True
+
+                login_user(user)
+                return redirect(url_for('dashboard'))
             else:
+                # Incorrect password: increment failed attempts and set last_failed_attempt
+                user.failed_attempts += 1
+                user.last_failed_attempt = datetime.utcnow()
+                db.session.commit()
                 flash('Login Failed! Incorrect password.', 'error')
+        else:
+            flash('Login Failed! Invalid email or password.', 'error')
+    
     return render_template('login.html')
 
 #Logout Route
@@ -461,6 +499,37 @@ def add_crop():
         flash('Crop added successfully!', 'success')
         return redirect(url_for('view_crops'))
     return render_template('add_crop.html')
+
+@app.route('/addcycle/<int:crop_id>', methods=['GET', 'POST'])
+@login_required
+def add_cycle(crop_id):
+    crop = Crop.query.get_or_404(crop_id)  # Fetch the crop based on the crop_id
+
+    if request.method == 'POST':
+        cycle_name = request.form.get('cycle_name')
+        planting_dates = request.form.get('planting_dates')  # Comma-separated text
+        harvest_dates = request.form.get('harvest_dates')    # Comma-separated text
+
+        if not cycle_name:
+            flash("Cycle name is required", "error")
+            return redirect(url_for('add_cycle', crop_id=crop_id))
+
+        # Create a new CropCycle object
+        new_cycle = CropCycle(
+            crop_id=crop_id,
+            cycle_name=cycle_name,
+            planting_dates=planting_dates,  # Store as text (JSON or comma-separated)
+            harvest_dates=harvest_dates
+        )
+
+        # Add to the database
+        db.session.add(new_cycle)
+        db.session.commit()
+
+        flash("New crop cycle added successfully!", "success")
+        return redirect(url_for('view_crops', crop_id=crop_id))  
+
+    return render_template('add_cycle.html', crop=crop)
 
 # Route to View Crops added
 @app.route('/view_crops')

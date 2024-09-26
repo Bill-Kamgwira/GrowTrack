@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Add Crop Cycle</title>
+    <style>
+        .form-container {
+            width: 50%;
+            margin: auto;
+        }
+        label, input, textarea {
+            display: block;
+            width: 100%;
+            margin-bottom: 15px;
+        }
+        input[type="submit"] {
+            width: auto;
+        }
+    </style>
+</head>
+<body>
+    <div class="form-container">
+        <h1>Add Cycle for {{ crop.name }}</h1>
+        <form action="{{ url_for('add_cycle', crop_id=crop.id) }}" method="POST">
+            <label for="cycle_name">Cycle Name:</label>
+            <input type="text" id="cycle_name" name="cycle_name" required placeholder="Enter cycle name">
+
+            <label for="planting_dates">Planting Dates (comma-separated):</label>
+            <input type="text" id="planting_dates" name="planting_dates" placeholder="e.g. 2024-03-01, 2024-03-10">
+
+            <label for="harvest_dates">Harvest Dates (comma-separated):</label>
+            <input type="text" id="harvest_dates" name="harvest_dates" placeholder="e.g. 2024-07-01, 2024-07-10">
+
+            <input type="submit" value="Add Cycle">
+        </form>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <ul>
+                    {% for category, message in messages %}
+                        <li class="{{ category }}">{{ message }}</li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
+        {% endwith %}
+    </div>
+</body>
+</html>

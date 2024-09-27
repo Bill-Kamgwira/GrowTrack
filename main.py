@@ -205,7 +205,10 @@ def logout():
 @login_required
 def dashboard():
 
-    joined_data = db.session.query(Crop, YieldData).join(YieldData).all()
+    user_crops = db.session.query(Crop).filter(Crop.user_id == current_user.id).all()
+
+    joined_data = db.session.query(Crop, YieldData).join(CropCycle, CropCycle.crop_id == Crop.id).join(YieldData, YieldData.crop_cycle_id == CropCycle.id).all()
+
 
     # Aggregate data by crop name
     aggregated_data = defaultdict(list)
@@ -339,7 +342,9 @@ def dashboard():
     p_irrigation.y_range = DataRange1d(start=min(irrigation_amounts), end=max(irrigation_amounts) + 10)
 
     # Fetch fertilizer and yield data from the database
-    data = db.session.query(CropManagement, YieldData).join(YieldData, CropManagement.crop_id == YieldData.crop_id).all()
+    data = db.session.query(CropManagement, YieldData).join(CropCycle, CropManagement.crop_cycle_id == CropCycle.id).join(YieldData, YieldData.crop_cycle_id == CropCycle.id).all()
+
+    
 
     # Prepare lists for fertilizer amount and yield quantity
     fertilizer_amounts = []
@@ -363,7 +368,7 @@ def dashboard():
     p_scatter.line(x='fertilizer', y='yield_qty', source=source, line_width=2, color='red')
 
     # Fetch irrigation and yield data from the database
-    datair = db.session.query(CropManagement, YieldData).join(YieldData, CropManagement.crop_id == YieldData.crop_id).all()
+    datair = db.session.query(CropManagement, YieldData).join(CropCycle, CropManagement.crop_cycle_id == CropCycle.id).join(YieldData, YieldData.crop_cycle_id == CropCycle.id).all()
 
     # Prepare lists for irrigation amount and yield quantity
     irrigation_amounts = []
@@ -391,24 +396,24 @@ def dashboard():
 
   
 
-    # Get the list of crops specific to the logged-in user
-    user_crops = db.session.query(Crop).filter(Crop.user_id == current_user.id).all()
+    # Get the list of crop cycles specific to the logged-in user
+    user_cycles = db.session.query(CropCycle).join(Crop).filter(Crop.user_id == current_user.id).all()
 
-    # Default crop_id to display initially (could be the first crop or a specific crop)
-    selected_crop_id = user_crops[0].id if user_crops else None  # Default to the first crop for this user, if available
+    # Default cycle_id to display initially (could be the first cycle or a specific cycle)
+    selected_cycle_id = user_cycles[0].id if user_cycles else None  # Default to the first cycle for this user, if available
 
-    # If a crop is selected through the form, update the selected_crop_id
+    # If a cycle is selected through the form, update the selected_cycle_id
     if request.method == 'POST':
-        selected_crop_id = int(request.form.get('crop_id'))
+        selected_cycle_id = int(request.form.get('cycle_id'))
 
-    # Fetch financial data for the selected crop by joining with Crop (to access user_id)
-    if selected_crop_id:
-        financial_data = db.session.query(FinancialData).join(Crop).filter(
-            FinancialData.crop_id == selected_crop_id,
-            Crop.user_id == current_user.id  # Ensure it belongs to the current user
+    # Fetch financial data for the selected cycle by joining with CropCycle (to access user_id)
+    if selected_cycle_id:
+        financial_data = db.session.query(FinancialData).filter(
+            FinancialData.crop_cycle_id == selected_cycle_id
         ).first()
     else:
         financial_data = None
+
 
     # Prepare data for the pie chart
     if financial_data:
@@ -487,49 +492,54 @@ def add_crop():
     if request.method == 'POST':
         crop = Crop(
             name=request.form['name'],
-            planting_date = datetime.strptime(request.form['planting_date'], '%Y-%m-%d').date(),
-            expected_harvest_date = datetime.strptime(request.form['expected_harvest_date'], '%Y-%m-%d').date(),
             crop_variety=request.form['crop_variety'],
-            acreage=request.form['acreage'],
-            crop_rotation_history=request.form['crop_rotation'],
+            acreage=float(request.form['acreage']),  # Ensure this is float
             user=current_user
         )
         db.session.add(crop)
         db.session.commit()
         flash('Crop added successfully!', 'success')
-        return redirect(url_for('view_crops'))
+        return redirect(url_for('add_cycle', crop_id=crop.id))
     return render_template('add_crop.html')
 
-@app.route('/addcycle/<int:crop_id>', methods=['GET', 'POST'])
+
+
+
+@app.route('/add_cycle/<int:crop_id>', methods=['GET', 'POST'])
 @login_required
 def add_cycle(crop_id):
-    crop = Crop.query.get_or_404(crop_id)  # Fetch the crop based on the crop_id
+    # Fetch the crop from the database
+    crop = Crop.query.get(crop_id)  # Fetch the specific crop based on crop_id
 
     if request.method == 'POST':
-        cycle_name = request.form.get('cycle_name')
-        planting_dates = request.form.get('planting_dates')  # Comma-separated text
-        harvest_dates = request.form.get('harvest_dates')    # Comma-separated text
+        cycle_name = request.form.get('cycle_name')  # Use get() to avoid KeyError
 
-        if not cycle_name:
-            flash("Cycle name is required", "error")
-            return redirect(url_for('add_cycle', crop_id=crop_id))
+        # Get the planting and harvest date from the form
+        planting_date = request.form.get('planting_date')
+        harvest_date = request.form.get('harvest_date')
 
-        # Create a new CropCycle object
+        # Convert the date input into a text format
+        planting_date_str = str(planting_date)  # Already in 'YYYY-MM-DD' string format
+        harvest_date_str = str(harvest_date) if harvest_date else None  # Convert to string if provided
+
+        # Create the CropCycle object with the text values
         new_cycle = CropCycle(
-            crop_id=crop_id,
             cycle_name=cycle_name,
-            planting_dates=planting_dates,  # Store as text (JSON or comma-separated)
-            harvest_dates=harvest_dates
+            planting_dates=planting_date_str,
+            harvest_dates=harvest_date_str,
+            crop_id=crop_id
         )
 
-        # Add to the database
         db.session.add(new_cycle)
         db.session.commit()
 
-        flash("New crop cycle added successfully!", "success")
-        return redirect(url_for('view_crops', crop_id=crop_id))  
+        flash('New cycle added successfully!', 'success')
+        return redirect(url_for('view_crop', crop_id=crop_id))
 
-    return render_template('add_cycle.html', crop=crop)
+    # Render the add cycle form
+    return render_template('add_cycle.html', crop_id=crop_id, crop = crop)
+
+
 
 # Route to View Crops added
 @app.route('/view_crops')
@@ -538,15 +548,30 @@ def view_crops():
     crops = current_user.crops
     return render_template('view_crops.html', crops=crops)
 
-# Route for link to view details of crops
+# Route To view in depth crop management details
 @app.route('/crop/<int:crop_id>')
 @login_required
 def view_crop(crop_id):
     crop = Crop.query.get_or_404(crop_id)
-    crop_management_records = CropManagement.query.filter_by(crop_id=crop_id).all()
-    yield_production_records = YieldData.query.filter_by(crop_id=crop_id).all()
-    financial_data_records = FinancialData.query.filter_by(crop_id=crop_id).all()
-    return render_template('info.html', crop=crop, crop_management_records=crop_management_records, yield_production_records=yield_production_records, financial_data_records = financial_data_records)
+    
+    # Fetch the crop cycles for the crop
+    crop_cycles = CropCycle.query.filter_by(crop_id=crop_id).all()
+    
+    # Initialize empty lists for management, yield, and financial records
+    crop_management_records = []
+    yield_production_records = []
+    financial_data_records = []
+    
+    # Collect records from all cycles
+    for cycle in crop_cycles:
+        crop_management_records.extend(CropManagement.query.filter_by(crop_cycle_id=cycle.id).all())
+        yield_production_records.extend(YieldData.query.filter_by(crop_cycle_id=cycle.id).all())
+        financial_data_records.extend(FinancialData.query.filter_by(crop_cycle_id=cycle.id).all())
+    
+    return render_template('info.html', crop=crop, crop_cycles=crop_cycles,
+                           crop_management_records=crop_management_records, 
+                           yield_production_records=yield_production_records, 
+                           financial_data_records=financial_data_records)
 
 #Route for capturing Crop-management data on the crop
 @app.route('/crop/<int:crop_id>/add-management', methods=['GET', 'POST'])

@@ -3,47 +3,38 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Add Crop Cycle</title>
-    <style>
-        .form-container {
-            width: 50%;
-            margin: auto;
-        }
-        label, input, textarea {
-            display: block;
-            width: 100%;
-            margin-bottom: 15px;
-        }
-        input[type="submit"] {
-            width: auto;
-        }
-    </style>
+    <title>Add New Crop Cycle</title>
+    <link rel="shortcut icon" href="/static/favicon.ico">
+    <link rel="stylesheet" href="/static/base.css">
+    <link rel="stylesheet" href="/static/navigation.css">
+    
 </head>
 <body>
-    <div class="form-container">
-        <h1>Add Cycle for {{ crop.name }}</h1>
-        <form action="{{ url_for('add_cycle', crop_id=crop.id) }}" method="POST">
-            <label for="cycle_name">Cycle Name:</label>
-            <input type="text" id="cycle_name" name="cycle_name" required placeholder="Enter cycle name">
+    <h1>Add New Cycle for {{ crop.name }}</h1>
+    <nav>
+        <ul>
+          <li><h3><a href="/dashboard">Dashboard</a></h3></li>
+          <li><h3><a href="/profile">Profile</a></h3></li>
+          <li><h3><a href="/add_crop">Add Crop</a></h3></li>
+          <li><h3><a href="/view_crops">View Crops</a></h3></li>
+          <li><h3><a href="/logout">Logout</a></h3></li>
+          </ul>
+      </nav>
 
-            <label for="planting_dates">Planting Dates (comma-separated):</label>
-            <input type="text" id="planting_dates" name="planting_dates" placeholder="e.g. 2024-03-01, 2024-03-10">
+    <form action="{{ url_for('add_cycle', crop_id=crop.id) }}" method="POST">
+        <label for="cycle_name">Cycle Name:</label>
+        <input type="text" id="cycle_name" name="cycle_name" placeholder="Enter cycle name" required>
+    
+        <label for="planting_date">Planting Date:</label>
+        <input type="date" id="planting_date" name="planting_date" required>
+    
+        <label for="harvest_date">Expected Harvest Date:</label>
+        <input type="date" id="harvest_date" name="harvest_date">
+    
+        <input type="submit" value="Add Cycle">
+    </form>
+    
 
-            <label for="harvest_dates">Harvest Dates (comma-separated):</label>
-            <input type="text" id="harvest_dates" name="harvest_dates" placeholder="e.g. 2024-07-01, 2024-07-10">
-
-            <input type="submit" value="Add Cycle">
-        </form>
-
-        {% with messages = get_flashed_messages(with_categories=true) %}
-            {% if messages %}
-                <ul>
-                    {% for category, message in messages %}
-                        <li class="{{ category }}">{{ message }}</li>
-                    {% endfor %}
-                </ul>
-            {% endif %}
-        {% endwith %}
-    </div>
+    <a href="{{ url_for('view_crop', crop_id=crop.id) }}">Back to Crop Details</a>
 </body>
 </html>

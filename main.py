@@ -207,82 +207,12 @@ def dashboard():
 
     user_crops = db.session.query(Crop).filter(Crop.user_id == current_user.id).all()
 
-    joined_data = db.session.query(Crop, YieldData).join(CropCycle, CropCycle.crop_id == Crop.id).join(YieldData, YieldData.crop_cycle_id == CropCycle.id).all()
+    # Join CropCycle and YieldData
+    joined_data = db.session.query(Crop, CropCycle, YieldData).join(CropCycle, CropCycle.crop_id == Crop.id).join(YieldData, YieldData.crop_cycle_id == CropCycle.id).all()
 
+   
 
-    # Aggregate data by crop name
-    aggregated_data = defaultdict(list)
-    for crop, yield_data in joined_data:
-        duration = yield_data.harvest_date - crop.planting_date
-        aggregated_data[crop.name].append(duration.days)  # Use crop.name for key
-
-    # Calculate total duration for each crop
-    crop_names = list(aggregated_data.keys())
-    durations = [sum(values) for values in aggregated_data.values()]
-
-    # Create bar chart for time to harvest
-    p = figure(
-        x_range=crop_names,
-        height=400, 
-        title='Time to Harvest'
-    )
-    p.vbar(x=crop_names, top=durations, width=0.5)
-    p.xgrid.grid_line_color = None
-    p.y_range.start = 0
-
-    # Prepare Yield Over Time data
-    YOTdata = []
-    for crop, yield_data in joined_data:
-        hardate = yield_data.harvest_date
-        harquan = yield_data.quantity
-        YOTdata.append({'crop_name': crop.name, 'harvest_date': hardate, 'quantity': harquan})
-
-    # Extracting data
-    yhardate = [item['harvest_date'] for item in YOTdata]
-    yharquan = [item['quantity'] for item in YOTdata]
-
-    # Ensure dates are datetime objects
-    yhardate = [
-        datetime.combine(date_obj, datetime.min.time()) 
-        if isinstance(date_obj, date) and not isinstance(date_obj, datetime) 
-        else date_obj 
-        for date_obj in yhardate
-    ]
-
-    # Create ColumnDataSource
-    source = ColumnDataSource(data=dict(harvest_date=yhardate, quantity=yharquan))
-
-    # Create figure for Yield Over Time
-    p_yield = figure(
-        x_axis_label='Harvest Date',
-        y_axis_label='Yield Quantity',
-        title='Yield Over Time',
-        x_axis_type='datetime'
-    )
-
-    # Add the circle glyph to the plot
-    p_yield.circle(x='harvest_date', y='quantity', source=source, size=10, color='blue')
-
-
-    # Set specific y-axis range
-    if yharquan:
-        p_yield.y_range = DataRange1d(start=min(yharquan), end=max(yharquan) + 10)
-    else:
-        p_yield.y_range = DataRange1d(start=0, end=10)
-
-    # Ensure yhardate contains valid datetime objects
-    if yhardate:
-        p_yield.x_range = DataRange1d(start=min(yhardate), end=max(yhardate))
-    else:
-        # Default date range
-        p_yield.x_range = DataRange1d(start=datetime(2024, 8, 7), end=datetime(2024, 9, 3))
-
-    # Format x-axis
-    p_yield.xaxis.formatter = DatetimeTickFormatter(
-        days="%d %B %Y",
-        months="%B %Y",
-        years="%Y"
-    )
+   
 
 
     # Fetch resource usage data (Fertilizer & Irrigation) from the database
@@ -434,7 +364,7 @@ def dashboard():
 
         source = ColumnDataSource(data=cost_data)
 
-        p_pie = figure(height=400, width=400, title=f"Cost Breakdown for {financial_data.crop.name}", toolbar_location=None, tools="hover", tooltips="@category: @value", x_range=(-0.5, 1))
+        p_pie = figure(height=400, width=400, title=f"Cost Breakdown for {financial_data.cycle.crop.name}", toolbar_location=None, tools="hover", tooltips="@category: @value", x_range=(-0.5, 1))
         p_pie.wedge(x=0, y=1, radius=0.4, start_angle=cumsum('angle', include_zero=True), end_angle=cumsum('angle'), line_color="white", fill_color='color', legend_field='category', source=source)
 
         p_pie.axis.visible = False
@@ -455,13 +385,9 @@ def dashboard():
     fert_script, fert_div = components(p_fertilizer)
     irr_script, irr_div = components(p_irrigation)
 
-    # Generate components
-    yscript, ydiv = components(p_yield)
+   
 
-    # Get chart components for the bar chart
-    script, div = components(p)
-
-    return render_template('dashboard.html', script=script, div=div, yscript=yscript, ydiv=ydiv, fert_script = fert_script, 
+    return render_template('dashboard.html', fert_script = fert_script, 
                            fert_div = fert_div, irr_script = irr_script, irr_div = irr_div, scatter_script= scatter_script, 
                             scatter_div = scatter_div, scatter_irr_script = scatter_irr_script, scatter_irr_div = scatter_irr_div,
                             pie_script = pie_script, pie_div = pie_div, crops = user_crops)
@@ -622,7 +548,7 @@ def add_crop_management(crop_id, cycle_id):
         db.session.add(management_record)
         db.session.commit()
         flash('Crop management record added successfully!', 'success')
-        return redirect(url_for('view_crop_cycle', crop_id=crop_id, cycle_id=cycle_id))
+        return redirect(url_for('view_crop', crop_id=crop_id, cycle_id=cycle_id))
 
     return render_template('add_crop_management.html', crop=crop, crop_cycle=crop_cycle)
 
@@ -638,16 +564,14 @@ def add_YieldData(crop_id, cycle_id):
         yield_production = YieldData(
             quantity=float(request.form['yield-quantity']),
             quality=request.form['yield-quality'],
-            harvest_date=datetime.strptime(request.form['harvest_date'], '%Y-%m-%d').date(),
-            post_harvest_loss=float(request.form['post_harvest_losses']),
-            factors_affecting_yield=request.form['factors'],
+            harvest_dates=datetime.strptime(request.form['harvest_date'], '%Y-%m-%d').date(),
             crop_cycle_id=crop_cycle.id  # Link yield data to the specific crop cycle
         )
 
         db.session.add(yield_production)
         db.session.commit()
         flash('Yield data added successfully!', 'success')
-        return redirect(url_for('view_crop_cycle', crop_id=crop_id, cycle_id=cycle_id))
+        return redirect(url_for('view_crop', crop_id=crop_id, cycle_id=cycle_id))
 
     return render_template('add_yield_production.html', crop=crop, crop_cycle=crop_cycle)
 
@@ -673,7 +597,7 @@ def add_FinanceData(crop_id, cycle_id):
         db.session.add(financial_data)
         db.session.commit()
         flash('Financial data added successfully!', 'success')
-        return redirect(url_for('view_crop_cycle', crop_id=crop_id, cycle_id=cycle_id))
+        return redirect(url_for('view_crop', crop_id=crop_id, cycle_id=cycle_id))
 
     return render_template('add_financial.html', crop=crop, crop_cycle=crop_cycle)
 

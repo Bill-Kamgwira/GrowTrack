@@ -205,7 +205,8 @@
                 <a href="{{ url_for('export_crop_manage_data', crop_id=crop.id) }}" class="export-button">Download Crop Management Data</a>
                 <br>
                 <br>
-                <a href="/crop/{{ crop.id }}/add-management">Add Crop Management Data</a>
+                <a href="/crop/{{ crop.id }}/cycle/{{ cycle.id }}/add-management">Add Crop Management Data</a>
+
               </div>
           
           
@@ -242,7 +243,7 @@
             <a href="{{ url_for('export_yield_data', crop_id=crop.id) }}" class="export-button">Download Crop Yield Data</a>
             <br>
             <br>
-            <a href="/crop/{{ crop.id }}/add-yield_production">Add Yield & Production Data</a>
+            <a href="/crop/{{ crop.id }}/cycle/{{ cycle.id }}/add-yield_production">Add Yield & Production Data</a>
           </div>
           
         <div id="financial-data" class="tab-pane">
@@ -281,7 +282,7 @@
             <a href="{{ url_for('export_financial_data', crop_id=crop.id) }}" class="export-button">Download Crop Financial Data</a>
             <br>
             <br>
-          <a href="/crop/{{ crop.id }}/add-financial">Add Financial Data</a>
+          <a href="/crop/{{ crop.id }}/cycle/{{ cycle.id }}/add-financial">Add Financial Data</a>
         </div>
 
       {% endfor %}

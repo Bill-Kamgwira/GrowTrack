@@ -58,20 +58,15 @@ class CropManagement(db.Model, TimestampMixin):
     id = db.Column(db.Integer, primary_key=True)
     crop_cycle_id = db.Column(db.Integer, db.ForeignKey('cropcycle.id', name='fk_cropmanagement_crop_cycle_id'))  # Named constraint
     cycle = db.relationship('CropCycle', back_populates='crop_management_records')
-    fertilizer_type = db.Column(db.String(50))
-    fertilizer_amount = db.Column(db.Float)
-    fertilizer_date = db.Column(db.Date)
-    irrigation_type = db.Column(db.String(50))
-    irrigation_amount = db.Column(db.Float)
-    irrigation_date = db.Column(db.Date)
-    control_type = db.Column(db.String(50))
-    control_amount = db.Column(db.Float)
-    control_date = db.Column(db.Date)
-    weeding_method = db.Column(db.String(50))
-    weeding_date = db.Column(db.Date)
-    tasks_completed = db.Column(db.String(200))
-    hours_accrued = db.Column(db.Float)
-    labour_date = db.Column(db.Date)
+    
+    # New structure
+    management_type = db.Column(db.String(50))  # Example values: 'Fertilizer', 'Irrigation', 'Control', 'Weeding', 'Labour'
+    amount = db.Column(db.Float, nullable=True)  # For things like fertilizer amount, irrigation amount, etc.
+    date = db.Column(db.Date, nullable=True)  # Date when the activity was done
+    details = db.Column(db.String(200), nullable=True)  # Further details, e.g., the type of fertilizer or weeding method
+    
+    # Any extra fields that might be common to all management types can go here
+
 
 class YieldData(db.Model, TimestampMixin):
     id = db.Column(db.Integer, primary_key=True)

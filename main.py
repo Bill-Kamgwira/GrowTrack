@@ -200,6 +200,22 @@ def logout():
     logout_user()
     return redirect(url_for('login'))
 
+#Function to ensure that a datatime object is being returned
+def ensure_datetime(date_obj):
+    if date_obj is None:
+        return None  # In case the date is None, return None
+    if isinstance(date_obj, datetime):
+        return date_obj  # Return directly if it's already a datetime object
+    elif isinstance(date_obj, date):  # Convert date to datetime
+        return datetime.combine(date_obj, datetime.min.time())
+    elif isinstance(date_obj, str):  # If it's a string, try parsing it
+        try:
+            return datetime.strptime(date_obj, "%Y-%m-%d")
+        except ValueError as e:
+            print(f"Error parsing date string {date_obj}: {e}")
+            return None  # Handle the error and return None
+    return None  # Return None if no valid conversion could be made
+
 # Dashboard Route
 @app.route('/dashboard', methods=['GET', 'POST'])
 @login_required
@@ -210,42 +226,19 @@ def dashboard():
     # Join CropCycle and YieldData
     joined_data = db.session.query(Crop, CropCycle, YieldData).join(CropCycle, CropCycle.crop_id == Crop.id).join(YieldData, YieldData.crop_cycle_id == CropCycle.id).all()
 
-   
-
-   
-
-
     # Fetch resource usage data (Fertilizer & Irrigation) from the database
-    resource_data = db.session.query(CropManagement).all()
+    # Filter CropManagement by type (e.g., 'fertilizer' and 'irrigation')
+    fertilizer_data = db.session.query(CropManagement).filter(CropManagement.management_type == 'fertilizer').all()
+    irrigation_data = db.session.query(CropManagement).filter(CropManagement.management_type == 'irrigation').all()
 
-    # Separate data for fertilizer and irrigation
-    fertilizer_data = []
-    irrigation_data = []
-    for record in resource_data:
-        if record.fertilizer_date and record.fertilizer_amount:
-            fertilizer_data.append({'date': record.fertilizer_date, 'amount': record.fertilizer_amount})
-        if record.irrigation_date and record.irrigation_amount:
-            irrigation_data.append({'date': record.irrigation_date, 'amount': record.irrigation_amount})
+    # Prepare fertilizer and irrigation data
+    fertilizer_dates = [ensure_datetime(record.date) for record in fertilizer_data]
+    fertilizer_amounts = [record.amount for record in fertilizer_data]
 
-    # Ensure dates are converted to datetime.datetime objects
-    def ensure_datetime(date_obj):
-        if isinstance(date_obj, datetime):
-            return date_obj
-        elif isinstance(date_obj, date):  # Convert date to datetime
-            return datetime.combine(date_obj, datetime.min.time())
-        elif isinstance(date_obj, str):  # In case any dates are strings
-            return datetime.strptime(date_obj, "%Y-%m-%d")
-        return date_obj
+    irrigation_dates = [ensure_datetime(record.date) for record in irrigation_data]
+    irrigation_amounts = [record.amount for record in irrigation_data]
 
-    # Convert fertilizer and irrigation dates to datetime.datetime objects
-    fertilizer_dates = [ensure_datetime(item['date']) for item in fertilizer_data]
-    irrigation_dates = [ensure_datetime(item['date']) for item in irrigation_data]
-
-    # Prepare amounts
-    fertilizer_amounts = [item['amount'] for item in fertilizer_data]
-    irrigation_amounts = [item['amount'] for item in irrigation_data]
-
-    # Now use these converted dates for the plot
+    # Create ColumnDataSource for fertilizer and irrigation data
     fertilizer_source = ColumnDataSource(data=dict(date=fertilizer_dates, amount=fertilizer_amounts))
     irrigation_source = ColumnDataSource(data=dict(date=irrigation_dates, amount=irrigation_amounts))
 
@@ -256,9 +249,18 @@ def dashboard():
     p_fertilizer.yaxis.axis_label = 'Fertilizer Amount'
     p_fertilizer.xaxis.axis_label = 'Date'
 
-    # Set x and y ranges manually for the fertilizer plot
-    p_fertilizer.x_range = DataRange1d(start=min(fertilizer_dates), end=max(fertilizer_dates))
-    p_fertilizer.y_range = DataRange1d(start=min(fertilizer_amounts), end=max(fertilizer_amounts) + 10)
+    if fertilizer_dates:  # Check if list is not empty
+        p_fertilizer.x_range = DataRange1d(start=min(fertilizer_dates), end=max(fertilizer_dates))
+    else:
+        # Handle the case where no data is available
+        p_fertilizer.x_range = DataRange1d(start=datetime.now(), end=datetime.now())  # Default to current date range or another suitable range
+
+    if fertilizer_amounts:  # Check if list is not empty
+        p_fertilizer.y_range = DataRange1d(start=min(fertilizer_amounts), end=max(fertilizer_amounts) + 10)
+    else:
+    # Handle the case where no data is available
+        p_fertilizer.y_range = DataRange1d(start=0, end=10)  # Default range when no data is available
+
 
     # Create figure for irrigation usage
     p_irrigation = figure(x_axis_type='datetime', title='Irrigation Usage Over Time', height=400, width=800)
@@ -267,25 +269,32 @@ def dashboard():
     p_irrigation.yaxis.axis_label = 'Irrigation Amount'
     p_irrigation.xaxis.axis_label = 'Date'
 
-    # Set x and y ranges manually for the irrigation plot
-    p_irrigation.x_range = DataRange1d(start=min(irrigation_dates), end=max(irrigation_dates))
-    p_irrigation.y_range = DataRange1d(start=min(irrigation_amounts), end=max(irrigation_amounts) + 10)
+    if irrigation_dates:  # Check if list is not empty
+        p_irrigation.x_range = DataRange1d(start=min(irrigation_dates), end=max(irrigation_dates))
+    else:
+    # Handle the case where no data is available
+        p_irrigation.x_range = DataRange1d(start=datetime.now(), end=datetime.now())  # Default to current date range or another suitable range
 
-    # Fetch fertilizer and yield data from the database
-    data = db.session.query(CropManagement, YieldData).join(CropCycle, CropManagement.crop_cycle_id == CropCycle.id).join(YieldData, YieldData.crop_cycle_id == CropCycle.id).all()
+    if irrigation_amounts:  # Check if list is not empty
+        p_irrigation.y_range = DataRange1d(start=min(irrigation_amounts), end=max(irrigation_amounts) + 10)
+    else:
+    # Handle the case where no data is available
+        p_irrigation.y_range = DataRange1d(start=0, end=10)  # Default range when no data is available
 
-    
+
+    # Fetch fertilizer and yield data from the database (by type)
+    data = db.session.query(CropManagement, YieldData).join(CropCycle, CropManagement.crop_cycle_id == CropCycle.id).join(YieldData, YieldData.crop_cycle_id == CropCycle.id).filter(CropManagement.management_type == 'fertilizer').all()
 
     # Prepare lists for fertilizer amount and yield quantity
     fertilizer_amounts = []
     yield_quantities = []
 
     for record in data:
-        if record.CropManagement.fertilizer_amount and record.YieldData.quantity:
-            fertilizer_amounts.append(record.CropManagement.fertilizer_amount)
+        if record.CropManagement.amount and record.YieldData.quantity:
+            fertilizer_amounts.append(record.CropManagement.amount)
             yield_quantities.append(record.YieldData.quantity)
 
-    # Create ColumnDataSource
+    # Create ColumnDataSource for fertilizer vs yield scatter plot
     source = ColumnDataSource(data=dict(fertilizer=fertilizer_amounts, yield_qty=yield_quantities))
 
     # Create scatter plot figure
@@ -294,22 +303,19 @@ def dashboard():
     # Add scatter plot points
     p_scatter.scatter(x='fertilizer', y='yield_qty', source=source, size=10, color='navy', alpha=0.6)
 
-    # Add a line of best fit if needed (Optional)
-    p_scatter.line(x='fertilizer', y='yield_qty', source=source, line_width=2, color='red')
-
-    # Fetch irrigation and yield data from the database
-    datair = db.session.query(CropManagement, YieldData).join(CropCycle, CropManagement.crop_cycle_id == CropCycle.id).join(YieldData, YieldData.crop_cycle_id == CropCycle.id).all()
+    # Fetch irrigation and yield data from the database (by type)
+    datair = db.session.query(CropManagement, YieldData).join(CropCycle, CropManagement.crop_cycle_id == CropCycle.id).join(YieldData, YieldData.crop_cycle_id == CropCycle.id).filter(CropManagement.management_type == 'irrigation').all()
 
     # Prepare lists for irrigation amount and yield quantity
     irrigation_amounts = []
     yield_quantities = []
 
     for record in datair:
-        if record.CropManagement.irrigation_amount and record.YieldData.quantity:
-            irrigation_amounts.append(record.CropManagement.irrigation_amount)
+        if record.CropManagement.amount and record.YieldData.quantity:
+            irrigation_amounts.append(record.CropManagement.amount)
             yield_quantities.append(record.YieldData.quantity)
 
-    # Create ColumnDataSource
+    # Create ColumnDataSource for irrigation vs yield scatter plot
     source = ColumnDataSource(data=dict(irrigation=irrigation_amounts, yield_qty=yield_quantities))
 
     # Create scatter plot figure for Irrigation vs Yield
@@ -321,76 +327,18 @@ def dashboard():
     # Add scatter plot points
     p_scatter_irr.scatter(x='irrigation', y='yield_qty', source=source, size=10, color='blue', alpha=0.6)
 
-    # Add a line of best fit if needed (Optional)
-    p_scatter_irr.line(x='irrigation', y='yield_qty', source=source, line_width=2, color='green')
-
-  
-
-    # Get the list of crop cycles specific to the logged-in user
-    user_cycles = db.session.query(CropCycle).join(Crop).filter(Crop.user_id == current_user.id).all()
-
-    # Default cycle_id to display initially (could be the first cycle or a specific cycle)
-    selected_cycle_id = user_cycles[0].id if user_cycles else None  # Default to the first cycle for this user, if available
-
-    # If a cycle is selected through the form, update the selected_cycle_id
-    if request.method == 'POST':
-        selected_cycle_id = int(request.form.get('cycle_id'))
-
-    # Fetch financial data for the selected cycle by joining with CropCycle (to access user_id)
-    if selected_cycle_id:
-        financial_data = db.session.query(FinancialData).filter(
-            FinancialData.crop_cycle_id == selected_cycle_id
-        ).first()
-    else:
-        financial_data = None
-
-
-    # Prepare data for the pie chart
-    if financial_data:
-        seed_cost = financial_data.seed_cost or 0
-        fertilizer_cost = financial_data.fertilizer_cost or 0
-        labor_cost = financial_data.labor_cost or 0
-        equipment_cost = financial_data.equipment_cost or 0
-        pesticide_cost = financial_data.pesticide_cost or 0
-
-        total_cost = seed_cost + fertilizer_cost + labor_cost + equipment_cost + pesticide_cost
-        cost_data = {
-            'category': ['Seed Cost', 'Fertilizer Cost', 'Labor Cost', 'Equipment Cost', 'Pesticide Cost'],
-            'value': [seed_cost, fertilizer_cost, labor_cost, equipment_cost, pesticide_cost]
-        }
-
-        cost_data['angle'] = [v / total_cost * 2 * pi for v in cost_data['value']]
-        cost_data['color'] = ['#fdae61', '#d73027', '#1a9850', '#91bfdb', '#fee08b']
-
-        source = ColumnDataSource(data=cost_data)
-
-        p_pie = figure(height=400, width=400, title=f"Cost Breakdown for {financial_data.cycle.crop.name}", toolbar_location=None, tools="hover", tooltips="@category: @value", x_range=(-0.5, 1))
-        p_pie.wedge(x=0, y=1, radius=0.4, start_angle=cumsum('angle', include_zero=True), end_angle=cumsum('angle'), line_color="white", fill_color='color', legend_field='category', source=source)
-
-        p_pie.axis.visible = False
-        p_pie.grid.visible = False
-        p_pie.legend.location = "top_left"
-    else:
-        p_pie = figure(height=400, width=400, title="No Financial Data Available for Selected Crop")
-
-    pie_script, pie_div = components(p_pie)
-
     # Generate components for embedding the chart
     scatter_irr_script, scatter_irr_div = components(p_scatter_irr)
-
-    # Generate components for embedding the chart
     scatter_script, scatter_div = components(p_scatter)
-
-    # Generate components for both charts
     fert_script, fert_div = components(p_fertilizer)
     irr_script, irr_div = components(p_irrigation)
 
-   
+    # Pass the necessary components to the template
+    return render_template('dashboard.html', fert_script=fert_script, fert_div=fert_div, 
+                           irr_script=irr_script, irr_div=irr_div, scatter_script=scatter_script, 
+                           scatter_div=scatter_div, scatter_irr_script=scatter_irr_script, scatter_irr_div=scatter_irr_div,
+                           crops=user_crops)
 
-    return render_template('dashboard.html', fert_script = fert_script, 
-                           fert_div = fert_div, irr_script = irr_script, irr_div = irr_div, scatter_script= scatter_script, 
-                            scatter_div = scatter_div, scatter_irr_script = scatter_irr_script, scatter_irr_div = scatter_irr_div,
-                            pie_script = pie_script, pie_div = pie_div, crops = user_crops)
 
 # Route for User to view profile
 @app.route('/profile')
@@ -468,7 +416,7 @@ def add_cycle(crop_id):
 
 
 # Route to View Crops added
-@app.route('/view_crops')
+@app.route('/view_crops', methods=['GET', 'POST'])
 @login_required
 def view_crops():
     crops = current_user.crops
@@ -682,6 +630,36 @@ def export_financial_data(crop_id):
     # Define the desired CSV header fields based on the filtered data
     fields = list(data[0].keys())
     return send_csv(data, f"{crop.name}_financial_data.csv", fields=fields)
+
+@app.route('/delete_crop/<int:crop_id>', methods=['POST'])
+@login_required
+def delete_crop(crop_id):
+    # Query the crop by ID
+    crop = db.session.query(Crop).filter_by(id=crop_id, user_id=current_user.id).first()
+
+    if not crop:
+        flash("Crop not found or you don't have permission to delete this crop.", "danger")
+        return redirect(url_for('dashboard'))
+
+    try:
+        # Delete related data (CropCycle, YieldData, CropManagement, FinancialData) before deleting the crop
+        for cycle in crop.cycles:
+            db.session.query(CropManagement).filter_by(crop_cycle_id=cycle.id).delete()
+            db.session.query(YieldData).filter_by(crop_cycle_id=cycle.id).delete()
+            db.session.query(FinancialData).filter_by(crop_cycle_id=cycle.id).delete()
+
+        # Finally delete crop cycles and the crop itself
+        db.session.query(CropCycle).filter_by(crop_id=crop.id).delete()
+        db.session.delete(crop)
+        db.session.commit()
+
+        flash(f"Crop '{crop.name}' and its related data have been deleted.", "success")
+    except Exception as e:
+        db.session.rollback()
+        flash("An error occurred while deleting the crop.", "danger")
+    
+    return redirect(url_for('dashboard'))
+
 
 # Run the development server (add this outside any functions)
 if __name__ == "__main__":

@@ -455,44 +455,20 @@ def add_crop_management(crop_id, cycle_id):
     crop_cycle = CropCycle.query.get_or_404(cycle_id)
 
     if request.method == 'POST':
-        management_type = request.form.get('management_type')
-        management_data = {}
+        management_type = request.form.get('management_type')  # Get management type (fertilization, irrigation, etc.)
+        amount = request.form.get('amount')  # General amount field for fertilizer, irrigation, etc.
+        date = request.form.get('date')  # Date of the management event
+        details = request.form.get('details')  # Additional details like fertilizer type, weeding method, etc.
 
-        if management_type == 'fertilization':
-            management_data = {
-                'fertilizer_type': request.form.get('fertilizer_type'),
-                'fertilizer_amount': float(request.form.get('fertilizer_amount')),
-                'fertilizer_date': datetime.strptime(request.form.get('fertilizer_date'), '%Y-%m-%d').date(),
-            }
-        elif management_type == 'irrigation':
-            management_data = {
-                'irrigation_type': request.form.get('irrigation_type'),
-                'irrigation_amount': float(request.form.get('irrigation_amount')),
-                'irrigation_date': datetime.strptime(request.form.get('irrigation_date'), '%Y-%m-%d').date(),
-            }
-        elif management_type == 'pest_control':
-            management_data = {
-                'control_type': request.form.get('control_type'),
-                'control_amount': float(request.form.get('control_amount')),
-                'control_date': datetime.strptime(request.form.get('control_date'), '%Y-%m-%d').date(),
-            }
-        elif management_type == 'weeding':
-            management_data = {
-                'weeding_method': request.form.get('weeding_method'),
-                'weeding_date': datetime.strptime(request.form.get('weeding_date'), '%Y-%m-%d').date(),
-            }
-        elif management_type == 'labor':
-            management_data = {
-                'tasks_completed': request.form.get('tasks_completed'),
-                'hours_accrued': float(request.form.get('hours_accrued')),
-                'labour_date': datetime.strptime(request.form.get('labour_date'), '%Y-%m-%d').date(),
-            }
-
-        # Create new management record with the cycle_id
+        # Create the crop management record using the new schema structure
         management_record = CropManagement(
             crop_cycle_id=crop_cycle.id,
-            **management_data
+            management_type=management_type,
+            amount=float(amount) if amount else None,  # Convert to float if present
+            date=datetime.strptime(date, '%Y-%m-%d').date() if date else None,
+            details=details  # Store extra details like fertilizer type, etc.
         )
+
         db.session.add(management_record)
         db.session.commit()
         flash('Crop management record added successfully!', 'success')

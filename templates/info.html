@@ -16,7 +16,7 @@
         <li><h3><a href="/add_crop">Add Crop</a></h3></li>
         <li><h3><a href="/view_crops">View Crops</a></h3></li>
         <li><h3><a href="/logout">Logout</a></h3></li>
-        </ul>
+      </ul>
     </nav>
     <ul class="tabs">
         <li><a href="#crop-details" onclick="showMainTab('crop-details')">Crop Details</a></li>
@@ -25,268 +25,166 @@
         <li><a href="#financial-data" onclick="showMainTab('financial-data')">Financial Data</a></li>
     </ul>
     <div class="tab-content">
-      <div id="crop-details" class="tab-pane">
-        <ul class="crop-details-list">
-          <li>
-            <strong>Crop Name:</strong>
-            <span>{{ crop.name }}</span>
-          </li>
-          <li>
-            <strong>Planting Date:</strong>
-            <span>{{ crop_cycles.planting_dates }}</span>
-          </li>
-          <li>
-            <strong>Expected Harvest Date:</strong>
-            <span>{{ crop_cycles.harvest_dates }}</span>
-          </li>
-          <li>
-            <strong>Acreage:</strong>
-            <span>{{ crop.acreage }}</span>
-          </li>
-          <li>
-            <strong>Crop Variety:</strong>
-            <span>{{ crop.crop_variety }}</span>
-          </li>
-          </ul>
-          
-      </div>
-
-      <div id="crop-management" class="tab-pane">
-                <h2>Crop Management Records</h2>
-        {% for cycle in crop_cycles %}
-        <h3>Cycle: {{ cycle.cycle_name }}</h3>
-                <ul class="sub-tabs">
-                  <li><a href="#fertilizer-info" onclick="showSubTab('fertilizer-info')">Fertilizer Information</a></li>
-                  <li><a href="#irrigation-info" onclick="showSubTab('irrigation-info')">Irrigation Information</a></li>
-                  <li><a href="#pest-info" onclick="showSubTab('pest-info')">Pest Control Information</a></li>
-                  <li><a href="#weeding-info" onclick="showSubTab('weeding-info')">Weeding Information</a></li>
-                  <li><a href="#labour-info" onclick="showSubTab('labour-info')">Labour Information</a></li>
-              </ul>
-        
-              <div id="fertilizer-info" class="subtab-pane">
-                  {% set records = crop_management_records | selectattr("crop_cycle_id", "equalto", cycle.id) | list %}
-                    {% if records %}
-                  <h3>Fertilizer Information</h3>
-                  <table class="management-table">
-                    <thead>
-                      <tr>
-                        <th>Fertilizer Type</th>
-                        <th>Amount</th>
-                        <th>Date</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                        {% for record in records if record.fertilizer_type %}
-                        <tr>
-                          <td>{{ record.fertilizer_type }}</td>
-                          <td>{{ record.fertilizer_amount }}</td>
-                          <td>{{ record.fertilizer_date }}</td>
-                        </tr>
-                      {% endfor %}
-                    </tbody>
-                  </table>
-                {% else %}
-                  <p>No fertilizer data found.</p>
-                {% endif %}
-              </div>
-              
-              <div id="irrigation-info" class="subtab-pane">
-                  {% set records = crop_management_records | selectattr("crop_cycle_id", "equalto", cycle.id) | list %}
-                  {% if records %}
-                
-                  <h3>Irrigation Information</h3>
-                  <table class="management-table">
-                    <thead>
-                      <tr>
-                        <th>Irrigation Type</th>
-                        <th>Amount</th>
-                        <th>Date</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                        {% for record in records if record.irrigation_type %}
-                        <tr>
-                          <td>{{ record.irrigation_type }}</td>
-                          <td>{{ record.irrigation_amount }}</td>
-                          <td>{{ record.irrigation_date }}</td>
-                        </tr>
-                      {% endfor %}
-                    </tbody>
-                  </table>
-                {% else %}
-                  <p>No irrigation data found.</p>
-                {% endif %}
-              </div>
-              
-              <div id="pest-info" class="subtab-pane">
-                  {% set records = crop_management_records | selectattr("crop_cycle_id", "equalto", cycle.id) | list %}
-                  {% if records %}
-                
-                  <h3>Pest Control Information</h3>
-                  <table class="management-table">
-                    <thead>
-                      <tr>
-                        <th>Control Type</th>
-                        <th>Amount</th>
-                        <th>Date</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                        {% for record in records if record.control_type %}
-                        <tr>
-                          <td>{{ record.control_type }}</td>
-                          <td>{{ record.control_amount }}</td>
-                          <td>{{ record.control_date }}</td>
-                        </tr>
-                      {% endfor %}
-                    </tbody>
-                  </table>
-                {% else %}
-                  <p>No pest control data found.</p>
-                {% endif %}
-              </div>
-              
-              <div id="weeding-info" class="subtab-pane">
-                  {% set records = crop_management_records | selectattr("crop_cycle_id", "equalto", cycle.id) | list %}
-                  {% if records %}
-                
-                  <h3>Weeding Information</h3>
-                  <table class="management-table">
-                    <thead>
-                      <tr>
-                        <th>Weeding Method</th>
-                        <th>Date</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                        {% for record in records if record.weeding_method %}
-                        <tr>
-                          <td>{{ record.weeding_method }}</td>
-                          <td>{{ record.weeding_date }}</td>
-                        </tr>
-                      {% endfor %}
-                    </tbody>
-                  </table>
-                {% else %}
-                  <p>No weeding data found.</p>
-                {% endif %}
-              </div>
-        
-        <div id="labour-info" class="subtab-pane">
-                  {% set records = crop_management_records | selectattr("crop_cycle_id", "equalto", cycle.id) | list %}
-                  {% if records %}
-                
-                  <h3>Labour Information</h3>
-                  <table class="management-table">
-                    <thead>
-                      <tr>
-                        <th>Tasks Completed</th>
-                        <th>Hours Accrued</th>
-                        <th>Date</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                        {% for record in records if record.tasks_completed %}
-                        <tr>
-                          <td>{{ record.tasks_completed }}</td>
-                          <td>{{ record.hours_accrued }}</td>
-                          <td>{{ record.labour_date }}</td>
-                        </tr>
-                      {% endfor %}
-                    </tbody>
-                  </table>
-                {% else %}
-                  <p>No labour data found.</p>
-                {% endif %}
-              </div>
-              
-                <br>
-                <br>
-                <a href="{{ url_for('export_crop_manage_data', crop_id=crop.id) }}" class="export-button">Download Crop Management Data</a>
-                <br>
-                <br>
-                <a href="/crop/{{ crop.id }}/cycle/{{ cycle.id }}/add-management">Add Crop Management Data</a>
-
-              </div>
-          
-          
-          <div id="yield-data" class="tab-pane">
-            <h2>Yield & Production Records</h2>
-            {% set records = yield_production_records | selectattr("crop_cycle_id", "equalto", cycle.id) | list %}
-              {% if records %}
-              <table>
-                <thead>
-                  <tr>
-                    <th>Yield-Quantity</th>
-                    <th>Yield-Quality</th>
-                    <th>Harvest Date</th>
-                    <th>Post-Harvest Losses</th>
-                    <th>Factors affecting Yield</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {% for yield_record in yield_production_records %}
-                    <tr>
-                      <td>{{ yield_record.quantity }}</td>  <td>{{ yield_record.quality }}</td>
-                      <td>{{ yield_record.harvest_date }}</td>
-                      <td>{{ yield_record.post_harvest_loss }}</td>
-                      <td>{{ yield_record.factors_affecting_yield }}</td>
-                    </tr>
-                  {% endfor %}
-                </tbody>
-              </table>
-            {% else %}
-              <p>No Yield & Production data found.</p>
-            {% endif %}
-            <br>
-            <br>
-            <a href="{{ url_for('export_yield_data', crop_id=crop.id) }}" class="export-button">Download Crop Yield Data</a>
-            <br>
-            <br>
-            <a href="/crop/{{ crop.id }}/cycle/{{ cycle.id }}/add-yield_production">Add Yield & Production Data</a>
-          </div>
-          
-        <div id="financial-data" class="tab-pane">
-          <h2>Finance Records</h2>
-          {% set records = financial_data_records | selectattr("crop_cycle_id", "equalto", cycle.id) | list %}
-          {% if records %}
-              <table>
-                <thead>
-                  <tr>
-                    <th>Seed Cost</th>
-                    <th>Fertilizer Cost</th>
-                    <th>Labor Cost</th>
-                    <th>Equipment Cost</th>
-                    <th>Pesticide Cost</th>
-                    <th>Revenue</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {% for finance_record in financial_data_records %}
-                    <tr>
-                      <td>{{ finance_record.seed_cost }}</td> 
-                      <td>{{ finance_record.fertilizer_cost }}</td>
-                      <td>{{ finance_record.labor_cost }}</td>
-                      <td>{{ finance_record.equipment_cost }}</td>
-                      <td>{{ finance_record.pesticide_cost }}</td>
-                      <td>{{ finance_record.revenue }}</td>
-                    </tr>
-                  {% endfor %}
-                </tbody>
-              </table>
-            {% else %}
-              <p>No Financial Data found.</p>
-            {% endif %}
-            <br>
-            <br>
-            <a href="{{ url_for('export_financial_data', crop_id=crop.id) }}" class="export-button">Download Crop Financial Data</a>
-            <br>
-            <br>
-          <a href="/crop/{{ crop.id }}/cycle/{{ cycle.id }}/add-financial">Add Financial Data</a>
+        <!-- Crop Details Section -->
+        <div id="crop-details" class="tab-pane">
+            <ul class="crop-details-list">
+                <li>
+                    <strong>Crop Name:</strong>
+                    <span>{{ crop.name }}</span>
+                </li>
+                {% for cycle in crop_cycles %}
+                    <li>
+                        <strong>Planting Dates:</strong>
+                        {% for date in cycle.planting_dates %}
+                            <span>{{ date }}</span>
+                        {% endfor %}
+                    </li>
+                    <li>
+                        <strong>Expected Harvest Dates:</strong>
+                        {% for date in cycle.harvest_dates %}
+                            <span>{{ date }}</span>
+                        {% endfor %}
+                    </li>
+                {% endfor %}
+                <li>
+                    <strong>Acreage:</strong>
+                    <span>{{ crop.acreage }}</span>
+                </li>
+                <li>
+                    <strong>Crop Variety:</strong>
+                    <span>{{ crop.crop_variety }}</span>
+                </li>
+            </ul>
         </div>
 
-      {% endfor %}
+        <!-- Crop Management Section -->
+        <div id="crop-management" class="tab-pane">
+            <h2>Crop Management Records</h2>
+            {% for cycle in crop_cycles %}
+  <h3>Cycle: {{ cycle.cycle_name }}</h3>
+  <table class="management-table">
+    <thead>
+      <tr>
+        <th>Management Type</th>
+        <th>Amount</th>
+        <th>Date</th>
+        <th>Details</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% set records = crop_management_records | selectattr("crop_cycle_id", "equalto", cycle.id) | list %}
+      {% if records %}
+        {% for record in records %}
+          <tr>
+            <td>{{ record.management_type }}</td>
+            <td>{{ record.amount }}</td>
+            <td>{{ record.date }}</td>
+            <td>{{ record.details }}</td>
+          </tr>
+        {% endfor %}
+      {% else %}
+        <tr>
+          <td colspan="4">No crop management data found.</td>
+        </tr>
+      {% endif %}
+    </tbody>
+  </table>
+  <br>
+  <a href="{{ url_for('export_crop_manage_data', crop_id=crop.id) }}" class="export-button">Download Crop Management Data</a>
+  <br>
+  <br>
+  <br>
+  <a href="/crop/{{ crop.id }}/cycle/{{ cycle.id }}/add-management">Add Crop Management Data</a>
+{% endfor %}
+
+        </div>
+
+        <!-- Yield Data Section -->
+        <div id="yield-data" class="tab-pane">
+            <h2>Yield & Production Records</h2>
+            {% for cycle in crop_cycles %}
+  {% set records = yield_production_records | selectattr("crop_cycle_id", "equalto", cycle.id) | list %}
+  {% if records %}
+    <table>
+      <thead>
+        <tr>
+          <th>Yield-Quantity</th>
+          <th>Yield-Quality</th>
+          <th>Harvest Date</th>
+          <th>Post-Harvest Losses</th>
+          <th>Factors affecting Yield</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for yield_record in records %}
+          <tr>
+            <td>{{ yield_record.quantity }}</td>
+            <td>{{ yield_record.quality }}</td>
+            <td>{{ yield_record.harvest_date }}</td>
+            <td>{{ yield_record.post_harvest_loss }}</td>
+            <td>{{ yield_record.factors_affecting_yield }}</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  {% else %}
+    <p>No Yield & Production data found.</p>
+  {% endif %}
+  <br>
+        <a href="{{ url_for('export_yield_data', crop_id=crop.id) }}" class="export-button">Download Crop Yield Data</a>
+        <br>
+        <br>
+        <br>
+        <a href="/crop/{{ crop.id }}/cycle/{{ cycle.id }}/add-yield_production">Add Yield & Production Data</a>
+    
+{% endfor %}
+
+        </div>
+
+        <!-- Financial Data Section -->
+        <div id="financial-data" class="tab-pane">
+            <h2>Finance Records</h2>
+            {% for cycle in crop_cycles %}
+  {% set records = financial_data_records | selectattr("crop_cycle_id", "equalto", cycle.id) | list %}
+  {% if records %}
+    <table>
+      <thead>
+        <tr>
+          <th>Seed Cost</th>
+          <th>Fertilizer Cost</th>
+          <th>Labor Cost</th>
+          <th>Equipment Cost</th>
+          <th>Pesticide Cost</th>
+          <th>Revenue</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for finance_record in records %}
+          <tr>
+            <td>{{ finance_record.seed_cost }}</td>
+            <td>{{ finance_record.fertilizer_cost }}</td>
+            <td>{{ finance_record.labor_cost }}</td>
+            <td>{{ finance_record.equipment_cost }}</td>
+            <td>{{ finance_record.pesticide_cost }}</td>
+            <td>{{ finance_record.revenue }}</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  {% else %}
+    <p>No Financial Data found.</p>
+  {% endif %}
+  <br>
+        <a href="{{ url_for('export_financial_data', crop_id=crop.id) }}" class="export-button">Download Crop Financial Data</a>
+        <br>
+        <br>
+        <br>
+        <a href="/crop/{{ crop.id }}/cycle/{{ cycle.id }}/add-financial">Add Financial Data</a>
+{% endfor %}
+
+        </div>
     </div>
+
     <script src="/static/tabs.js"></script>
 </body>
 </html>

@@ -111,8 +111,6 @@
           <th>Yield-Quantity</th>
           <th>Yield-Quality</th>
           <th>Harvest Date</th>
-          <th>Post-Harvest Losses</th>
-          <th>Factors affecting Yield</th>
         </tr>
       </thead>
       <tbody>
@@ -121,8 +119,6 @@
             <td>{{ yield_record.quantity }}</td>
             <td>{{ yield_record.quality }}</td>
             <td>{{ yield_record.harvest_date }}</td>
-            <td>{{ yield_record.post_harvest_loss }}</td>
-            <td>{{ yield_record.factors_affecting_yield }}</td>
           </tr>
         {% endfor %}
       </tbody>
@@ -142,33 +138,29 @@
         </div>
 
         <!-- Financial Data Section -->
-        <div id="financial-data" class="tab-pane">
-            <h2>Finance Records</h2>
-            {% for cycle in crop_cycles %}
-  {% set records = financial_data_records | selectattr("crop_cycle_id", "equalto", cycle.id) | list %}
-  {% if records %}
-    <table>
-      <thead>
-        <tr>
-          <th>Seed Cost</th>
-          <th>Fertilizer Cost</th>
-          <th>Labor Cost</th>
-          <th>Equipment Cost</th>
-          <th>Pesticide Cost</th>
-          <th>Revenue</th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for finance_record in records %}
-          <tr>
-            <td>{{ finance_record.seed_cost }}</td>
-            <td>{{ finance_record.fertilizer_cost }}</td>
-            <td>{{ finance_record.labor_cost }}</td>
-            <td>{{ finance_record.equipment_cost }}</td>
-            <td>{{ finance_record.pesticide_cost }}</td>
-            <td>{{ finance_record.revenue }}</td>
-          </tr>
-        {% endfor %}
+        <div id="financial-data" class="tab-pane"> 
+          <h2>Finance Records</h2>
+          {% for cycle in crop_cycles %}
+              {% set records = financial_data_records | selectattr("crop_cycle_id", "equalto", cycle.id) | list %}
+              {% if records %}
+                  <table>
+                      <thead>
+                          <tr>
+                              <th>Cost Type</th>
+                              <th>Amount</th>
+                              <th>Details</th>
+                              <th>Date</th>
+                          </tr>
+                      </thead>
+                      <tbody>
+                          {% for finance_record in records %}
+                              <tr>
+                                  <td>{{ finance_record.cost_type }}</td>
+                                  <td>{{ finance_record.amount }}</td>
+                                  <td>{{ finance_record.details or "N/A" }}</td>
+                                  <td>{{ finance_record.date.strftime('%Y-%m-%d') if finance_record.date else "N/A" }}</td>
+                              </tr>
+                          {% endfor %}
       </tbody>
     </table>
   {% else %}

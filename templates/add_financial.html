@@ -18,32 +18,33 @@
           <li><h3><a href="/logout">Logout</a></h3></li>
           </ul>
       </nav>
-    <form method="POST">
-        <label for="seed-cost">Seed Cost:</label>
-        <input type="number" name="seed-cost" id="seed-cost" >
-        <br>
-
-        <label for="fertilizer_cost">Fertilizer Cost:</label>
-        <input type="number" name="fertilizer_cost" id="fertilizer_cost">
-        <br>
-
-        <label for="labor_cost">Labor Cost:</label>
-        <input type="number" name="labor_cost" id="labor_cost">
-        <br>
-
-        <label for="equipment_cost">Equipment Cost:</label>
-        <input type="number" name="equipment_cost" id="equipment_cost">
-        <br>
-
-        <label for="pesticide_cost">Pesticide Cost:</label>
-        <input type="number" name="pesticide_cost" id="pesticide_cost">
-        <br>
-
-        <label for="revenue">Revenue:</label>
-        <input type="number" name="revenue" id="revenue">
-
-        <button type="submit">Add Financial Data</button>
+      <form method="POST">
+        <div>
+            <label for="cost_type">Cost Type:</label>
+            <select name="cost_type" id="cost_type" required>
+                <option value="Seed">Seed</option>
+                <option value="Fertilizer">Fertilizer</option>
+                <option value="Labor">Labor</option>
+                <option value="Equipment">Equipment</option>
+                <option value="Pesticide">Pesticide</option>
+                <option value="Revenue">Revenue</option>
+            </select>
+        </div>
+        <div>
+            <label for="amount">Amount:</label>
+            <input type="number" step="0.01" name="amount" id="amount" required>
+        </div>
+        <div>
+            <label for="details">Details:</label>
+            <textarea name="details" id="details"></textarea>
+        </div>
+        <div>
+            <label for="date">Date:</label>
+            <input type="date" name="date" id="date" required>
+        </div>
+        <button type="submit">Submit</button>
     </form>
+    
     
 </body>
 </html>

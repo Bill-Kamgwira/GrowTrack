@@ -48,8 +48,8 @@ class CropCycle(db.Model, TimestampMixin):
     crop_id = db.Column(db.Integer, db.ForeignKey('crop.id', name='fk_cropcycle_crop_id'))  # Named constraint
     crop = db.relationship('Crop', back_populates='cycles')
     cycle_name = db.Column(db.String(100))  # Optional name for each cycle
-    planting_dates = db.Column(db.Text)  # Storing multiple dates as text (could be JSON format)
-    harvest_dates = db.Column(db.Text)  # Storing multiple harvest dates
+    planting_date = db.Column(db.Date, nullable=True)  # Storing multiple dates as text (could be JSON format)
+    expecetd_harvest_date = db.Column(db.Date, nullable=True)  # Storing multiple harvest dates
     crop_management_records = db.relationship('CropManagement', back_populates='cycle')
     yield_data = db.relationship('YieldData', back_populates='cycle')
     financial_data = db.relationship('FinancialData', back_populates='cycle')
@@ -63,7 +63,7 @@ class CropManagement(db.Model, TimestampMixin):
     management_type = db.Column(db.String(50))  # Example values: 'Fertilizer', 'Irrigation', 'Control', 'Weeding', 'Labour'
     amount = db.Column(db.Float, nullable=True)  # For things like fertilizer amount, irrigation amount, etc.
     date = db.Column(db.Date, nullable=True)  # Date when the activity was done
-    details = db.Column(db.String(200), nullable=True)  # Further details, e.g., the type of fertilizer or weeding method
+    details = db.Column(db.String(400), nullable=True)  # Further details, e.g., the type of fertilizer or weeding method
     
     # Any extra fields that might be common to all management types can go here
 
@@ -72,17 +72,23 @@ class YieldData(db.Model, TimestampMixin):
     id = db.Column(db.Integer, primary_key=True)
     crop_cycle_id = db.Column(db.Integer, db.ForeignKey('cropcycle.id', name='fk_yielddata_crop_cycle_id'))  # Named constraint
     cycle = db.relationship('CropCycle', back_populates='yield_data')
+    
     quantity = db.Column(db.Float)
     quality = db.Column(db.String(50))
-    harvest_dates = db.Column(db.Text)  # Multiple harvest events
+    
+    # Updated to store a single harvest date
+    harvest_date = db.Column(db.Date)
+    
+    # New details column for additional information
+    details = db.Column(db.String(400), nullable=True)
+
 
 class FinancialData(db.Model, TimestampMixin):
     id = db.Column(db.Integer, primary_key=True)
-    crop_cycle_id = db.Column(db.Integer, db.ForeignKey('cropcycle.id', name='fk_financialdata_crop_cycle_id'))  # Named constraint
+    crop_cycle_id = db.Column(db.Integer, db.ForeignKey('cropcycle.id', name='fk_financialdata_crop_cycle_id'))
     cycle = db.relationship('CropCycle', back_populates='financial_data')
-    seed_cost = db.Column(db.Float)
-    fertilizer_cost = db.Column(db.Float)
-    labor_cost = db.Column(db.Float)
-    equipment_cost = db.Column(db.Float)
-    pesticide_cost = db.Column(db.Float)
-    revenue = db.Column(db.Float)
+    
+    cost_type = db.Column(db.String(50))  # Example values: 'Seed', 'Fertilizer', 'Labor', 'Equipment', 'Pesticide', 'Revenue'
+    amount = db.Column(db.Float)  # The amount of the cost or revenue
+    details = db.Column(db.String(400), nullable=True)  # Additional details like item description, etc.
+    date = db.Column(db.Date, nullable=True)  # The date when the cost or revenue was recorded

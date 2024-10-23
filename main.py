@@ -5,7 +5,6 @@ import re
 from supdb import db
 from models import User, Crop, CropManagement, YieldData, FinancialData, CropCycle
 import secrets
-from datetime import datetime
 from flask_migrate import Migrate
 from flask_csv import send_csv
 from bokeh.embed import components
@@ -15,8 +14,9 @@ from collections import defaultdict
 from bokeh.models import DatetimeTickFormatter, ColumnDataSource, DataRange1d
 from math import pi
 from bokeh.transform import cumsum
-
-
+from bokeh.layouts import column
+from bokeh.palettes import Spectral5
+import pandas as pd
 
 
 
@@ -216,129 +216,92 @@ def ensure_datetime(date_obj):
             return None  # Handle the error and return None
     return None  # Return None if no valid conversion could be made
 
-# Dashboard Route
-@app.route('/dashboard', methods=['GET', 'POST'])
+#Route for Dahsboard
+@app.route('/dashboard')
 @login_required
 def dashboard():
+    # Fetch all cycles
+    all_cycles = CropCycle.query.all()
 
-    user_crops = db.session.query(Crop).filter(Crop.user_id == current_user.id).all()
+    # Initialize dataframes
+    fertilizer_df = pd.DataFrame(columns=['date', 'amount'])
+    irrigation_df = pd.DataFrame(columns=['date', 'amount'])
+    yield_df = pd.DataFrame(columns=['harvest_date', 'quantity'])
+    financial_df = pd.DataFrame(columns=['cost_type', 'amount'])
 
-    # Join CropCycle and YieldData
-    joined_data = db.session.query(Crop, CropCycle, YieldData).join(CropCycle, CropCycle.crop_id == Crop.id).join(YieldData, YieldData.crop_cycle_id == CropCycle.id).all()
+    # Loop through cycles
+    for cycle in all_cycles:
+        cycle_id = cycle.id
 
-    # Fetch resource usage data (Fertilizer & Irrigation) from the database
-    # Filter CropManagement by type (e.g., 'fertilizer' and 'irrigation')
-    fertilizer_data = db.session.query(CropManagement).filter(CropManagement.management_type == 'fertilizer').all()
-    irrigation_data = db.session.query(CropManagement).filter(CropManagement.management_type == 'irrigation').all()
+        # Fetch and concatenate management data
+        fertilizer_data = CropManagement.query.filter_by(crop_cycle_id=cycle_id, management_type='fertilization').all()
+        if fertilizer_data:
+            fertilizer_df = pd.concat([fertilizer_df, pd.DataFrame([(m.date, m.amount) for m in fertilizer_data], columns=['date', 'amount'])])
 
-    # Prepare fertilizer and irrigation data
-    fertilizer_dates = [ensure_datetime(record.date) for record in fertilizer_data]
-    fertilizer_amounts = [record.amount for record in fertilizer_data]
+        irrigation_data = CropManagement.query.filter_by(crop_cycle_id=cycle_id, management_type='irrigation').all()
+        if irrigation_data:
+            irrigation_df = pd.concat([irrigation_df, pd.DataFrame([(m.date, m.amount) for m in irrigation_data], columns=['date', 'amount'])])
 
-    irrigation_dates = [ensure_datetime(record.date) for record in irrigation_data]
-    irrigation_amounts = [record.amount for record in irrigation_data]
+        # Fetch and concatenate yield data
+        yield_data = YieldData.query.filter_by(crop_cycle_id=cycle_id).all()
+        if yield_data:
+            yield_df = pd.concat([yield_df, pd.DataFrame([(y.harvest_date, y.quantity) for y in yield_data], columns=['harvest_date', 'quantity'])])
 
-    # Create ColumnDataSource for fertilizer and irrigation data
-    fertilizer_source = ColumnDataSource(data=dict(date=fertilizer_dates, amount=fertilizer_amounts))
-    irrigation_source = ColumnDataSource(data=dict(date=irrigation_dates, amount=irrigation_amounts))
+        # Fetch and concatenate financial data
+        financial_data = FinancialData.query.filter_by(crop_cycle_id=cycle_id).all()
+        if financial_data:
+            financial_df = pd.concat([financial_df, pd.DataFrame([(f.cost_type, f.amount) for f in financial_data], columns=['cost_type', 'amount'])])
 
-    # Create figure for fertilizer usage
-    p_fertilizer = figure(x_axis_type='datetime', title='Fertilizer Usage Over Time', height=400, width=800)
-    p_fertilizer.line(x='date', y='amount', source=fertilizer_source, line_width=2, color='green', legend_label="Fertilizer")
-    p_fertilizer.xaxis.formatter = DatetimeTickFormatter(days="%d %B %Y", months="%B %Y", years="%Y")
-    p_fertilizer.yaxis.axis_label = 'Fertilizer Amount'
-    p_fertilizer.xaxis.axis_label = 'Date'
+    # Convert date columns to datetime
+    if not fertilizer_df.empty:
+        fertilizer_df['date'] = pd.to_datetime(fertilizer_df['date'], errors='coerce')
 
-    if fertilizer_dates:  # Check if list is not empty
-        p_fertilizer.x_range = DataRange1d(start=min(fertilizer_dates), end=max(fertilizer_dates))
-    else:
-        # Handle the case where no data is available
-        p_fertilizer.x_range = DataRange1d(start=datetime.now(), end=datetime.now())  # Default to current date range or another suitable range
+    if not irrigation_df.empty:
+        irrigation_df['date'] = pd.to_datetime(irrigation_df['date'], errors='coerce')
 
-    if fertilizer_amounts:  # Check if list is not empty
-        p_fertilizer.y_range = DataRange1d(start=min(fertilizer_amounts), end=max(fertilizer_amounts) + 10)
-    else:
-    # Handle the case where no data is available
-        p_fertilizer.y_range = DataRange1d(start=0, end=10)  # Default range when no data is available
+    if not yield_df.empty:
+        yield_df['harvest_date'] = pd.to_datetime(yield_df['harvest_date'], errors='coerce')
 
+    # Only create charts if data exists
+    layout = []
 
-    # Create figure for irrigation usage
-    p_irrigation = figure(x_axis_type='datetime', title='Irrigation Usage Over Time', height=400, width=800)
-    p_irrigation.line(x='date', y='amount', source=irrigation_source, line_width=2, color='blue', legend_label="Irrigation")
-    p_irrigation.xaxis.formatter = DatetimeTickFormatter(days="%d %B %Y", months="%B %Y", years="%Y")
-    p_irrigation.yaxis.axis_label = 'Irrigation Amount'
-    p_irrigation.xaxis.axis_label = 'Date'
+    if not fertilizer_df.empty:
+        fertilizer_source = ColumnDataSource(fertilizer_df)
+        fertilizer_fig = figure(title="Fertilizer Usage Over Time", x_axis_type='datetime')
+        fertilizer_fig.line(x='date', y='amount', source=fertilizer_source, color='green')
+        layout.append(fertilizer_fig)
 
-    if irrigation_dates:  # Check if list is not empty
-        p_irrigation.x_range = DataRange1d(start=min(irrigation_dates), end=max(irrigation_dates))
-    else:
-    # Handle the case where no data is available
-        p_irrigation.x_range = DataRange1d(start=datetime.now(), end=datetime.now())  # Default to current date range or another suitable range
+    if not irrigation_df.empty:
+        irrigation_source = ColumnDataSource(irrigation_df)
+        irrigation_fig = figure(title="Irrigation Usage Over Time", x_axis_type='datetime')
+        irrigation_fig.line(x='date', y='amount', source=irrigation_source, color='blue')
+        layout.append(irrigation_fig)
 
-    if irrigation_amounts:  # Check if list is not empty
-        p_irrigation.y_range = DataRange1d(start=min(irrigation_amounts), end=max(irrigation_amounts) + 10)
-    else:
-    # Handle the case where no data is available
-        p_irrigation.y_range = DataRange1d(start=0, end=10)  # Default range when no data is available
+    if not yield_df.empty and not fertilizer_df.empty:
+        fertilizer_vs_yield_df = pd.merge(fertilizer_df, yield_df, left_on='date', right_on='harvest_date', how='inner')
+        fertilizer_vs_yield_source = ColumnDataSource(fertilizer_vs_yield_df)
+        fertilizer_vs_yield_fig = figure(title="Fertilizer vs Yield")
+        fertilizer_vs_yield_fig.scatter(x='amount', y='quantity', source=fertilizer_vs_yield_source, color='green')
+        layout.append(fertilizer_vs_yield_fig)
 
+    if not yield_df.empty and not irrigation_df.empty:
+        irrigation_vs_yield_df = pd.merge(irrigation_df, yield_df, left_on='date', right_on='harvest_date', how='inner')
+        irrigation_vs_yield_source = ColumnDataSource(irrigation_vs_yield_df)
+        irrigation_vs_yield_fig = figure(title="Irrigation vs Yield")
+        irrigation_vs_yield_fig.scatter(x='amount', y='quantity', source=irrigation_vs_yield_source, color='blue')
+        layout.append(irrigation_vs_yield_fig)
 
-    # Fetch fertilizer and yield data from the database (by type)
-    data = db.session.query(CropManagement, YieldData).join(CropCycle, CropManagement.crop_cycle_id == CropCycle.id).join(YieldData, YieldData.crop_cycle_id == CropCycle.id).filter(CropManagement.management_type == 'fertilizer').all()
+    if not financial_df.empty:
+        financial_summary_df = financial_df.groupby('cost_type').sum().reset_index()
+        financial_source = ColumnDataSource(financial_summary_df)
+        financial_fig = figure(x_range=financial_summary_df['cost_type'], title="Financial Breakdown")
+        financial_fig.vbar(x='cost_type', top='amount', source=financial_source, width=0.9)
+        layout.append(financial_fig)
 
-    # Prepare lists for fertilizer amount and yield quantity
-    fertilizer_amounts = []
-    yield_quantities = []
+    # Generate the script and div for embedding in the HTML template
+    script, div = components(layout)
 
-    for record in data:
-        if record.CropManagement.amount and record.YieldData.quantity:
-            fertilizer_amounts.append(record.CropManagement.amount)
-            yield_quantities.append(record.YieldData.quantity)
-
-    # Create ColumnDataSource for fertilizer vs yield scatter plot
-    source = ColumnDataSource(data=dict(fertilizer=fertilizer_amounts, yield_qty=yield_quantities))
-
-    # Create scatter plot figure
-    p_scatter = figure(title='Fertilizer Amount vs Yield Quantity', x_axis_label='Fertilizer Amount', y_axis_label='Yield Quantity', height=400, width=800)
-
-    # Add scatter plot points
-    p_scatter.scatter(x='fertilizer', y='yield_qty', source=source, size=10, color='navy', alpha=0.6)
-
-    # Fetch irrigation and yield data from the database (by type)
-    datair = db.session.query(CropManagement, YieldData).join(CropCycle, CropManagement.crop_cycle_id == CropCycle.id).join(YieldData, YieldData.crop_cycle_id == CropCycle.id).filter(CropManagement.management_type == 'irrigation').all()
-
-    # Prepare lists for irrigation amount and yield quantity
-    irrigation_amounts = []
-    yield_quantities = []
-
-    for record in datair:
-        if record.CropManagement.amount and record.YieldData.quantity:
-            irrigation_amounts.append(record.CropManagement.amount)
-            yield_quantities.append(record.YieldData.quantity)
-
-    # Create ColumnDataSource for irrigation vs yield scatter plot
-    source = ColumnDataSource(data=dict(irrigation=irrigation_amounts, yield_qty=yield_quantities))
-
-    # Create scatter plot figure for Irrigation vs Yield
-    p_scatter_irr = figure(title='Irrigation Amount vs Yield Quantity', 
-                        x_axis_label='Irrigation Amount', 
-                        y_axis_label='Yield Quantity', 
-                        height=400, width=800)
-
-    # Add scatter plot points
-    p_scatter_irr.scatter(x='irrigation', y='yield_qty', source=source, size=10, color='blue', alpha=0.6)
-
-    # Generate components for embedding the chart
-    scatter_irr_script, scatter_irr_div = components(p_scatter_irr)
-    scatter_script, scatter_div = components(p_scatter)
-    fert_script, fert_div = components(p_fertilizer)
-    irr_script, irr_div = components(p_irrigation)
-
-    # Pass the necessary components to the template
-    return render_template('dashboard.html', fert_script=fert_script, fert_div=fert_div, 
-                           irr_script=irr_script, irr_div=irr_div, scatter_script=scatter_script, 
-                           scatter_div=scatter_div, scatter_irr_script=scatter_irr_script, scatter_irr_div=scatter_irr_div,
-                           crops=user_crops)
-
+    return render_template('dashboard.html', script=script, div=div)
 
 # Route for User to view profile
 @app.route('/profile')
@@ -564,14 +527,13 @@ def export_yield_data(crop_id):
 
     data = []
     for record in yield_data_records:
-        # Handle multiple harvest dates (assumes harvest_dates is stored as a comma-separated string)
-        harvest_dates = record.harvest_dates if record.harvest_dates else ""
+
         
         # Create the filtered yield data dictionary
         yield_data_fields = {
             'quantity': record.quantity or "",
             'quality': record.quality or "",
-            'harvest_date': harvest_date,  # Assuming this is a string or JSON field
+            'harvest_date':record.harvest_date,  # Assuming this is a string or JSON field
         }
         data.append(yield_data_fields)
 
@@ -585,28 +547,28 @@ def export_yield_data(crop_id):
 @app.route('/export/csv/<int:crop_id>/financial_data')
 def export_financial_data(crop_id):
     crop = Crop.query.get_or_404(crop_id)
-    
+
     # Query financial data by joining through CropCycle based on crop_id
     financial_data_records = FinancialData.query.join(CropCycle).filter(CropCycle.crop_id == crop_id).all()
 
+    # Initialize a dictionary to store financial data grouped by cycle and type
     data = []
     for record in financial_data_records:
-        # Create the filtered financial data dictionary
+        # Create a dictionary for each record with cost_type and amount
         financial_data_fields = {
-            'seed_cost': record.seed_cost or "",
-            'fertilizer_cost': record.fertilizer_cost or "",
-            'labor_cost': record.labor_cost or "",
-            'equipment_cost': record.equipment_cost or "",
-            'pesticide_cost': record.pesticide_cost or "",
-            'revenue': record.revenue or "",
+            'cost_type': record.cost_type or "",
+            'amount': record.amount or "",
+            'details': record.details or "",  # Add details if necessary
+            'date': record.date.strftime('%Y-%m-%d') if record.date else ""
         }
         data.append(financial_data_fields)
 
     # Define the CSV header fields
-    fields = ['seed_cost', 'fertilizer_cost', 'labor_cost', 'equipment_cost', 'pesticide_cost', 'revenue']
+    fields = ['cost_type', 'amount', 'details', 'date']
 
     # Generate and return the CSV
     return send_csv(data, f"{crop.name}_financial_data.csv", fields=fields)
+
 
 
 @app.route('/delete_crop/<int:crop_id>', methods=['POST'])

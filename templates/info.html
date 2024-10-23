@@ -25,38 +25,64 @@
         <li><a href="#financial-data" onclick="showMainTab('financial-data')">Financial Data</a></li>
     </ul>
     <div class="tab-content">
-        <!-- Crop Details Section -->
-        <div id="crop-details" class="tab-pane">
-            <ul class="crop-details-list">
-                <li>
-                    <strong>Crop Name:</strong>
-                    <span>{{ crop.name }}</span>
-                </li>
-                {% for cycle in crop_cycles %}
-                    <li>
-                        <strong>Planting Dates:</strong>
-                        {% for date in cycle.planting_dates %}
-                            <span>{{ date }}</span>
-                        {% endfor %}
-                    </li>
-                    <li>
-                        <strong>Expected Harvest Dates:</strong>
-                        {% for date in cycle.harvest_dates %}
-                            <span>{{ date }}</span>
-                        {% endfor %}
-                    </li>
-                {% endfor %}
-                <li>
-                    <strong>Acreage:</strong>
-                    <span>{{ crop.acreage }}</span>
-                </li>
-                <li>
-                    <strong>Crop Variety:</strong>
-                    <span>{{ crop.crop_variety }}</span>
-                </li>
-            </ul>
-        </div>
-
+      <!-- Crop Details Section -->
+      <div id="crop-details" class="tab-pane">
+          <h2>Crop Details</h2>
+          <ul class="crop-details-list">
+              <li>
+                  <strong>Crop Name:</strong>
+                  <span>{{ crop.name }}</span>
+              </li>
+              <li>
+                  <strong>Acreage:</strong>
+                  <span>{{ crop.acreage }} acres</span>
+              </li>
+              <li>
+                  <strong>Crop Variety:</strong>
+                  <span>{{ crop.crop_variety or 'N/A' }}</span>
+              </li>
+  
+              <!-- Loop through each cycle -->
+              {% for cycle in crop_cycles %}
+                  <hr>
+                  <h4>Cycle {{ loop.index }} ({{ cycle.cycle_name or 'Unnamed Cycle' }})</h4>
+  
+                  <!-- Display planting date if it exists -->
+                  <li>
+                      <strong>Planting Date:</strong>
+                      <span>
+                          {% if cycle.planting_date %}
+                              {{ cycle.planting_date.strftime('%B %d, %Y') }}
+                          {% else %}
+                              No planting date recorded
+                          {% endif %}
+                      </span>
+                  </li>
+  
+                  <!-- Display expected harvest date if it exists -->
+                  <li>
+                      <strong>Expected Harvest Date:</strong>
+                      <span>
+                          {% if cycle.expected_harvest_date %}
+                              {{ cycle.expected_harvest_date.strftime('%B %d, %Y') }}
+                          {% else %}
+                              No expected harvest date recorded
+                          {% endif %}
+                      </span>
+                  </li>
+              {% endfor %}
+          </ul>
+          <!-- New Cycle Button -->
+        <div class="new-cycle-button">
+          <a href="{{ url_for('add_cycle', crop_id=crop.id) }}" class="btn btn-primary">
+              New Cycle
+          </a>
+      </div>
+      
+      </div>
+  </div>
+  
+  
         <!-- Crop Management Section -->
         <div id="crop-management" class="tab-pane">
             <h2>Crop Management Records</h2>

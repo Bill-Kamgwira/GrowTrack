@@ -19,27 +19,64 @@ h3 a {
 }
 
 .crop-items {
-  display: flex; /* Arrange items in a row */
-  flex-wrap: wrap; /* Allow items to wrap if needed */
-  gap: 10px; /* Add spacing between items */
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px; /* More space between items */
 }
 
 .crop-item {
-  background-color: #4CAF50; /* Button background color */
-  color: white; /* Button text color */
-  padding: 10px 20px;
-  border: none;
+  background-color: #4CAF50;
+  color: white;
+  padding: 15px;
   border-radius: 5px;
-  cursor: pointer; /* Indicate clickable element */
-  text-align: center; /* Center text within button */
-  transition: background-color 0.2s ease-in-out; /* Add hover effect */
+  text-align: center;
+  width: 200px; /* Control the width of each crop item */
 }
+
+.crop-name {
+  margin-bottom: 10px; /* Add space between the crop name and the button */
+}
+
+.crop-items {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px; /* More space between items */
+}
+
+.crop-item {
+  background-color: #4CAF50;
+  color: white;
+  padding: 15px;
+  border-radius: 5px;
+  text-align: center;
+  width: 200px; /* Control the width of each crop item */
+}
+
+.crop-name {
+  margin-bottom: 10px; /* Add space between the crop name and the button */
+}
+
 .crop-item a {
   text-decoration: none;
-  color: inherit; /* Inherit the color from the parent element */
+  color: white; /* Make sure the crop name stays white */
   font-weight: bold;
 }
 
 .crop-item:hover {
-  background-color: #3e8e41; /* Change background color on hover */
+  background-color: #45a049; /* Lighter green for hover effect */
+}
+
+/* Delete button specific styles */
+.delete-btn {
+  background-color: #e74c3c; /* Red background for delete button */
+  color: white;
+  border: none;
+  padding: 8px 12px;
+  border-radius: 5px;
+  cursor: pointer;
+  width: 100%;
+}
+
+.delete-btn:hover {
+  background-color: #c0392b; /* Darker red on hover */
 }

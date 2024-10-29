@@ -138,13 +138,6 @@ def signup():
             return redirect(url_for('login'))
 
 
-
-@app.route('/view_users') #To view Contents of the Database
-def view_users(): 
-    users = User.query.all()  # Query all users
-    return render_template('users.html', users=users)
-
-
 @login_manager.user_loader
 def load_user(user_id):
     return User.query.get(int(user_id))

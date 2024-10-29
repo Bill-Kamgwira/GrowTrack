@@ -10,14 +10,11 @@ from flask_csv import send_csv
 from bokeh.embed import components
 from bokeh.plotting import figure
 from datetime import datetime, date, timedelta
-from collections import defaultdict
-from bokeh.models import DatetimeTickFormatter, ColumnDataSource, DataRange1d
+from bokeh.models import DatetimeTickFormatter, ColumnDataSource, HoverTool, Label
 from math import pi
 from bokeh.transform import cumsum
-from bokeh.layouts import column
-from bokeh.palettes import Spectral5
+from bokeh.palettes import Category20c, Category10
 import pandas as pd
-
 
 
 
@@ -216,92 +213,17 @@ def ensure_datetime(date_obj):
             return None  # Handle the error and return None
     return None  # Return None if no valid conversion could be made
 
+
+
+
+
 #Route for Dahsboard
 @app.route('/dashboard')
 @login_required
 def dashboard():
-    # Fetch all cycles
-    all_cycles = CropCycle.query.all()
+    
+    return render_template('dashboard.html')
 
-    # Initialize dataframes
-    fertilizer_df = pd.DataFrame(columns=['date', 'amount'])
-    irrigation_df = pd.DataFrame(columns=['date', 'amount'])
-    yield_df = pd.DataFrame(columns=['harvest_date', 'quantity'])
-    financial_df = pd.DataFrame(columns=['cost_type', 'amount'])
-
-    # Loop through cycles
-    for cycle in all_cycles:
-        cycle_id = cycle.id
-
-        # Fetch and concatenate management data
-        fertilizer_data = CropManagement.query.filter_by(crop_cycle_id=cycle_id, management_type='fertilization').all()
-        if fertilizer_data:
-            fertilizer_df = pd.concat([fertilizer_df, pd.DataFrame([(m.date, m.amount) for m in fertilizer_data], columns=['date', 'amount'])])
-
-        irrigation_data = CropManagement.query.filter_by(crop_cycle_id=cycle_id, management_type='irrigation').all()
-        if irrigation_data:
-            irrigation_df = pd.concat([irrigation_df, pd.DataFrame([(m.date, m.amount) for m in irrigation_data], columns=['date', 'amount'])])
-
-        # Fetch and concatenate yield data
-        yield_data = YieldData.query.filter_by(crop_cycle_id=cycle_id).all()
-        if yield_data:
-            yield_df = pd.concat([yield_df, pd.DataFrame([(y.harvest_date, y.quantity) for y in yield_data], columns=['harvest_date', 'quantity'])])
-
-        # Fetch and concatenate financial data
-        financial_data = FinancialData.query.filter_by(crop_cycle_id=cycle_id).all()
-        if financial_data:
-            financial_df = pd.concat([financial_df, pd.DataFrame([(f.cost_type, f.amount) for f in financial_data], columns=['cost_type', 'amount'])])
-
-    # Convert date columns to datetime
-    if not fertilizer_df.empty:
-        fertilizer_df['date'] = pd.to_datetime(fertilizer_df['date'], errors='coerce')
-
-    if not irrigation_df.empty:
-        irrigation_df['date'] = pd.to_datetime(irrigation_df['date'], errors='coerce')
-
-    if not yield_df.empty:
-        yield_df['harvest_date'] = pd.to_datetime(yield_df['harvest_date'], errors='coerce')
-
-    # Only create charts if data exists
-    layout = []
-
-    if not fertilizer_df.empty:
-        fertilizer_source = ColumnDataSource(fertilizer_df)
-        fertilizer_fig = figure(title="Fertilizer Usage Over Time", x_axis_type='datetime')
-        fertilizer_fig.line(x='date', y='amount', source=fertilizer_source, color='green')
-        layout.append(fertilizer_fig)
-
-    if not irrigation_df.empty:
-        irrigation_source = ColumnDataSource(irrigation_df)
-        irrigation_fig = figure(title="Irrigation Usage Over Time", x_axis_type='datetime')
-        irrigation_fig.line(x='date', y='amount', source=irrigation_source, color='blue')
-        layout.append(irrigation_fig)
-
-    if not yield_df.empty and not fertilizer_df.empty:
-        fertilizer_vs_yield_df = pd.merge(fertilizer_df, yield_df, left_on='date', right_on='harvest_date', how='inner')
-        fertilizer_vs_yield_source = ColumnDataSource(fertilizer_vs_yield_df)
-        fertilizer_vs_yield_fig = figure(title="Fertilizer vs Yield")
-        fertilizer_vs_yield_fig.scatter(x='amount', y='quantity', source=fertilizer_vs_yield_source, color='green')
-        layout.append(fertilizer_vs_yield_fig)
-
-    if not yield_df.empty and not irrigation_df.empty:
-        irrigation_vs_yield_df = pd.merge(irrigation_df, yield_df, left_on='date', right_on='harvest_date', how='inner')
-        irrigation_vs_yield_source = ColumnDataSource(irrigation_vs_yield_df)
-        irrigation_vs_yield_fig = figure(title="Irrigation vs Yield")
-        irrigation_vs_yield_fig.scatter(x='amount', y='quantity', source=irrigation_vs_yield_source, color='blue')
-        layout.append(irrigation_vs_yield_fig)
-
-    if not financial_df.empty:
-        financial_summary_df = financial_df.groupby('cost_type').sum().reset_index()
-        financial_source = ColumnDataSource(financial_summary_df)
-        financial_fig = figure(x_range=financial_summary_df['cost_type'], title="Financial Breakdown")
-        financial_fig.vbar(x='cost_type', top='amount', source=financial_source, width=0.9)
-        layout.append(financial_fig)
-
-    # Generate the script and div for embedding in the HTML template
-    script, div = components(layout)
-
-    return render_template('dashboard.html', script=script, div=div)
 
 # Route for User to view profile
 @app.route('/profile')
